@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
 import { Day, Task, SlotsPayload } from '../../models';
@@ -9,21 +8,28 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
 @Component({
   selector: 'app-day-view',
   standalone: true,
-  imports: [CommonModule, DatePipe, SlotCardComponent, RouterLink],
+  imports: [CommonModule, DatePipe, SlotCardComponent],
   template: `
     <div class="day-view">
-      <header class="day-header">
-        <button class="nav-btn" (click)="previousDay()">←</button>
+      <div class="page-title">DAY PLANNER</div>
+
+      <div class="day-nav">
+        <button class="nav-btn" (click)="previousDay()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
         <div class="date-display">
           <span class="day-name">{{ currentDate() | date:'EEEE' }}</span>
           <span class="day-full">{{ currentDate() | date:'MMMM d, y' }}</span>
         </div>
-        <button class="nav-btn" (click)="nextDay()">→</button>
-        <div class="header-actions">
-          <button class="today-btn" (click)="goToToday()">Today</button>
-          <a class="stats-link" routerLink="/stats">Stats</a>
-        </div>
-      </header>
+        <button class="nav-btn" (click)="nextDay()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+        <button class="today-btn" (click)="goToToday()">TODAY</button>
+      </div>
 
       <div class="slots-container">
         <app-slot-card
@@ -52,30 +58,45 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
   `,
   styles: [`
     .day-view {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
+      min-height: 100vh;
+      padding: 2rem;
     }
-    .day-header {
+    .page-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 2.5rem;
+      color: var(--color-primary);
+      letter-spacing: 0.15em;
+      text-shadow: 0 0 40px var(--color-glow);
+      margin-bottom: 2rem;
+    }
+    .day-nav {
       display: flex;
       align-items: center;
       gap: 1rem;
       margin-bottom: 2rem;
     }
     .nav-btn {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #fff;
       width: 44px;
       height: 44px;
-      border-radius: 8px;
-      font-size: 1.2rem;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
       cursor: pointer;
-      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
     }
     .nav-btn:hover {
-      background: rgba(233,30,99,0.3);
-      border-color: rgba(233,30,99,0.5);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 20px var(--color-glow);
+      color: var(--color-primary);
     }
     .date-display {
       flex: 1;
@@ -83,52 +104,39 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
     .day-name {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.2em;
+      color: var(--color-primary);
       margin-bottom: 0.25rem;
     }
     .day-full {
       display: block;
-      font-size: 1.3rem;
-      font-weight: 600;
+      font-size: 1.6rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
       color: #fff;
-    }
-    .header-actions {
-      display: flex;
-      gap: 0.5rem;
+      letter-spacing: 0.02em;
     }
     .today-btn {
-      background: rgba(233,30,99,0.2);
-      border: 1px solid rgba(233,30,99,0.4);
-      color: #e91e63;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: rgba(255,255,255,0.6);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
     }
     .today-btn:hover {
-      background: rgba(233,30,99,0.35);
-    }
-    .stats-link {
-      display: flex;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.7);
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.15s;
-    }
-    .stats-link:hover {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      box-shadow: 0 0 20px var(--color-glow);
     }
     .slots-container {
       display: flex;

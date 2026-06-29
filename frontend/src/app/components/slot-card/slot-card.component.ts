@@ -8,43 +8,49 @@ import { TaskDropdownComponent } from '../task-dropdown/task-dropdown.component'
   standalone: true,
   imports: [CommonModule, TaskDropdownComponent],
   template: `
-    <div class="slot-card" [class.free]="slot().status === 'free'" [class.set]="slot().status === 'set' && !slot().completed" [class.completed]="slot().completed">
-      <div class="slot-header">
-        <span class="slot-name">{{ slotName() }}</span>
-        @if (slot().status === 'set' && slot().task) {
-          <span class="stat-badge" [attr.data-stat]="slot().task!.statName?.toLowerCase()">
-            {{ slot().task!.statName }}
-          </span>
-        }
-      </div>
+    <div class="slot-card"
+         [class.free]="slot().status === 'free'"
+         [class.set]="slot().status === 'set' && !slot().completed"
+         [class.completed]="slot().completed"
+         (click)="openDropdown()">
 
-      <div class="slot-body">
-        <div class="slot-content" (click)="openDropdown()">
+      <div class="slot-label">{{ slotName() }}</div>
+
+      <div class="slot-main">
+        <div class="slot-content">
           @if (slot().status === 'free') {
-            <span class="free-text">— Free —</span>
+            <span class="free-text">— FREE —</span>
           } @else if (slot().task) {
-            <span class="task-name" [class.strike]="slot().completed">{{ slot().task!.name }}</span>
+            <span class="task-name" [class.done]="slot().completed">{{ slot().task!.name }}</span>
           }
         </div>
 
         @if (slot().status === 'set' && !slot().completed) {
           <button class="check-btn" (click)="onCheck($event)" title="Mark as done">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"></polyline>
+              <polyline points="20 6 9 17 4 12"/>
             </svg>
           </button>
         }
         @if (slot().completed) {
-          <div class="completed-icon">
+          <div class="done-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"></polyline>
+              <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
         }
       </div>
 
+      @if (slot().status === 'set' && slot().task) {
+        <div class="slot-meta">
+          <span class="stat-badge" [attr.data-stat]="slot().task!.statName?.toLowerCase()">
+            {{ slot().task!.statName }} +{{ slot().task!.statGain }}
+          </span>
+        </div>
+      }
+
       @if (growthAnimation()) {
-        <div class="growth-popup" [class.visible]="growthAnimation()">
+        <div class="growth-popup">
           +{{ growthAmount() }} {{ growthStat() }}
         </div>
       }
@@ -61,142 +67,158 @@ import { TaskDropdownComponent } from '../task-dropdown/task-dropdown.component'
   `,
   styles: [`
     .slot-card {
-      padding: 1rem 1.25rem;
-      border-radius: 8px;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      padding: 1.25rem 1.5rem;
       cursor: pointer;
-      transition: all 0.15s ease;
-      border: 1px solid transparent;
+      transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
     }
+    .slot-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--color-border);
+      transition: all 0.2s ease;
+    }
+    .slot-card:hover::before {
+      background: var(--color-primary);
+      box-shadow: 0 0 15px var(--color-glow);
+    }
     .slot-card.free {
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.1);
+      opacity: 0.6;
     }
     .slot-card.free:hover {
-      background: rgba(255,255,255,0.08);
+      opacity: 0.8;
+      border-color: rgba(255,255,255,0.2);
     }
     .slot-card.set {
-      background: rgba(233,30,99,0.15);
       border-color: rgba(233,30,99,0.3);
     }
-    .slot-card.set:hover {
-      background: rgba(233,30,99,0.2);
+    .slot-card.set::before {
+      background: var(--color-primary);
     }
     .slot-card.completed {
-      background: rgba(0,230,118,0.1);
       border-color: rgba(0,230,118,0.3);
+      opacity: 0.85;
     }
-    .slot-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
+    .slot-card.completed::before {
+      background: var(--color-success);
     }
-    .slot-name {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.5);
-      font-weight: 600;
-    }
-    .stat-badge {
+    .slot-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
       font-size: 0.65rem;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
     }
-    .stat-badge[data-stat="academics"] { background: #1565c0; color: #fff; }
-    .stat-badge[data-stat="proficiency"] { background: #2e7d32; color: #fff; }
-    .stat-badge[data-stat="kindness"] { background: #c2185b; color: #fff; }
-    .stat-badge[data-stat="guts"] { background: #e65100; color: #fff; }
-    .stat-badge[data-stat="courage"] { background: #f9a825; color: #212121; }
-    .slot-body {
+    .slot-main {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
     .slot-content {
       flex: 1;
     }
-    .slot-content:hover .task-name {
-      text-decoration: underline;
-    }
-    .slot-content {
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
     .free-text {
-      color: rgba(255,255,255,0.3);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.25);
     }
     .task-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
       color: #fff;
-      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.2s ease;
     }
-    .task-name.strike {
+    .task-name.done {
       text-decoration: line-through;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.4);
     }
     .check-btn {
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      border: 2px solid rgba(0,230,118,0.5);
+      border: 2px solid rgba(0,230,118,0.4);
       background: transparent;
-      color: rgba(0,230,118,0.7);
+      color: rgba(0,230,118,0.6);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
       flex-shrink: 0;
     }
-    .check-btn:hover {
-      background: rgba(0,230,118,0.2);
-      border-color: #00e676;
-      color: #00e676;
-      box-shadow: 0 0 15px rgba(0,230,118,0.4);
-    }
     .check-btn svg {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
     }
-    .completed-icon {
-      width: 32px;
-      height: 32px;
+    .check-btn:hover {
+      background: rgba(0,230,118,0.15);
+      border-color: var(--color-success);
+      color: var(--color-success);
+      box-shadow: 0 0 20px rgba(0,230,118,0.4);
+    }
+    .done-badge {
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: rgba(0,230,118,0.2);
-      border: 2px solid #00e676;
-      color: #00e676;
+      background: rgba(0,230,118,0.15);
+      border: 2px solid var(--color-success);
+      color: var(--color-success);
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 0 20px rgba(0,230,118,0.3);
     }
-    .completed-icon svg {
-      width: 16px;
-      height: 16px;
+    .done-badge svg {
+      width: 18px;
+      height: 18px;
     }
+    .slot-meta {
+      margin-top: 0.75rem;
+    }
+    .stat-badge {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+    .stat-badge[data-stat="academics"] { background: rgba(21,101,192,0.8); color: #fff; }
+    .stat-badge[data-stat="proficiency"] { background: rgba(46,125,50,0.8); color: #fff; }
+    .stat-badge[data-stat="kindness"] { background: rgba(194,24,91,0.8); color: #fff; }
+    .stat-badge[data-stat="guts"] { background: rgba(230,81,0,0.8); color: #fff; }
+    .stat-badge[data-stat="courage"] { background: rgba(249,168,37,0.9); color: #212121; }
     .growth-popup {
       position: absolute;
-      top: 50%;
+      top: 1rem;
       right: 1rem;
-      transform: translateY(-50%);
-      color: #00e676;
-      font-weight: 700;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
       font-size: 1rem;
+      color: var(--color-success);
+      text-shadow: 0 0 15px rgba(0,230,118,0.8);
       pointer-events: none;
-      opacity: 0;
-      animation: none;
-    }
-    .growth-popup.visible {
       animation: floatUp 2s ease-out forwards;
     }
     @keyframes floatUp {
-      0% { opacity: 1; transform: translateY(-50%); }
-      70% { opacity: 1; transform: translateY(-120%); }
-      100% { opacity: 0; transform: translateY(-150%); }
+      0% { opacity: 1; transform: translateY(0); }
+      70% { opacity: 1; transform: translateY(-30px); }
+      100% { opacity: 0; transform: translateY(-50px); }
     }
   `]
 })
@@ -227,8 +249,8 @@ export class SlotCardComponent {
     this.closeDropdown();
   }
 
-  onCheck(event: MouseEvent) {
-    event.stopPropagation();
+  onCheck(e: MouseEvent) {
+    e.stopPropagation();
     const slot = this.slot();
     if (slot.status === 'set' && slot.task && !slot.completed) {
       this.growthAmount.set(slot.task.statGain);

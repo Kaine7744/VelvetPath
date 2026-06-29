@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, ElementRef, ViewChild, AfterViewInit, input } from '@angular/core';
+import { Component, OnChanges, ElementRef, ViewChild, AfterViewInit, input, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, RadialLinearScale, ChartDataset } from 'chart.js';
 import { Stat } from '../../models';
@@ -24,19 +24,19 @@ Chart.register(RadialLinearScale);
     .chart-wrapper {
       position: relative;
       width: 100%;
-      max-width: 400px;
+      max-width: 360px;
       margin: 0 auto;
     }
     canvas {
       width: 100% !important;
-      height: auto !important;
+      aspect-ratio: 1 !important;
     }
     .tier-badge {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: var(--color-card);
+      background: var(--color-bg);
       border: 2px solid var(--color-primary);
       border-radius: 50%;
       width: 64px;
@@ -66,60 +66,62 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
   stats = input<Stat[]>([]);
 
   private chart: Chart | null = null;
+  private initialized = false;
 
   ngAfterViewInit() {
+    this.initialized = true;
     this.createChart();
   }
 
-  ngOnChanges() {
-    if (this.chart) {
-      this.updateChart();
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['stats'] && this.initialized) {
+      if (this.chart) {
+        this.updateChart();
+      } else {
+        this.createChart();
+      }
     }
   }
 
   maxTier(): number {
     const values = this.stats().map(s => s.currentValue);
-    if (values.length === 0) return 1;
+    if (!values.length) return 1;
     const max = Math.max(...values);
     return Math.max(1, Math.floor(max / 100) + 1);
   }
 
   private getStatValue(stat: Stat): number {
-    return stat.currentValue % 100;
+    return Math.min(100, stat.currentValue % 100 || (stat.currentValue > 0 ? 100 : 0));
   }
 
   private createChart() {
+    if (!this.chartCanvas) return;
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
     const stats = this.stats();
     const labels = this.getOrderedLabels();
     const data = this.getOrderedData(stats);
-    const colors = this.getOrderedColors();
 
-    const gradient = ctx.createRadialGradient(200, 200, 0, 200, 200, 200);
-    gradient.addColorStop(0, 'rgba(233,30,99,0.4)');
+    const gradient = ctx.createRadialGradient(150, 150, 0, 150, 150, 150);
+    gradient.addColorStop(0, 'rgba(233,30,99,0.5)');
     gradient.addColorStop(1, 'rgba(233,30,99,0.05)');
 
     const dataset: ChartDataset<'radar'> = {
-      label: 'Stats',
       data,
       backgroundColor: gradient,
       borderColor: '#e91e63',
       borderWidth: 2,
-      pointBackgroundColor: colors,
+      pointBackgroundColor: this.getOrderedColors(),
       pointBorderColor: '#fff',
       pointBorderWidth: 2,
-      pointRadius: 6,
+      pointRadius: 5,
       pointHoverRadius: 8,
     };
 
     this.chart = new Chart(ctx, {
       type: 'radar',
-      data: {
-        labels,
-        datasets: [dataset],
-      },
+      data: { labels, datasets: [dataset] },
       options: {
         responsive: true,
         maintainAspectRatio: true,
@@ -128,43 +130,24 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
             min: 0,
             max: 100,
             beginAtZero: true,
-            angleLines: {
-              color: 'rgba(255,255,255,0.1)',
-            },
-            grid: {
-              color: 'rgba(255,255,255,0.1)',
-            },
+            angleLines: { color: 'rgba(255,255,255,0.08)' },
+            grid: { color: 'rgba(255,255,255,0.08)' },
             pointLabels: {
-              color: 'rgba(255,255,255,0.8)',
-              font: {
-                family: "'Montserrat', sans-serif",
-                size: 12,
-                weight: 600,
-              },
+              color: 'rgba(255,255,255,0.9)',
+              font: { family: "'Montserrat', sans-serif", size: 11, weight: 700 },
             },
-            ticks: {
-              display: false,
-            },
+            ticks: { display: false },
           },
         },
         plugins: {
-          legend: {
-            display: false,
-          },
+          legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(30,30,30,0.95)',
-            titleFont: {
-              family: "'Montserrat', sans-serif",
-              size: 14,
-              weight: 700,
-            },
-            bodyFont: {
-              family: "'Noto Sans', sans-serif",
-              size: 12,
-            },
+            backgroundColor: 'rgba(15,15,20,0.95)',
+            titleFont: { family: "'Montserrat', sans-serif", size: 13, weight: 700 },
+            bodyFont: { family: "'Noto Sans', sans-serif", size: 12 },
             borderColor: '#e91e63',
             borderWidth: 1,
-            padding: 12,
+            padding: 10,
             callbacks: {
               label: (ctx) => {
                 const stat = stats[ctx.dataIndex];
@@ -174,10 +157,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
             },
           },
         },
-        animation: {
-          duration: 800,
-          easing: 'easeOutQuart',
-        },
+        animation: { duration: 800, easing: 'easeOutQuart' },
       },
     });
   }
@@ -187,17 +167,15 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
     const stats = this.stats();
     this.chart.data.labels = this.getOrderedLabels();
     this.chart.data.datasets[0].data = this.getOrderedData(stats);
+    (this.chart.data.datasets[0] as ChartDataset<'radar'>).pointBackgroundColor = this.getOrderedColors();
     this.chart.update();
   }
 
   private getOrderedLabels(): string[] {
     const order = ['guts', 'courage', 'academics', 'kindness', 'proficiency'];
     const names: Record<string, string> = {
-      guts: 'GUTS',
-      courage: 'COURAGE',
-      academics: 'ACADEMICS',
-      kindness: 'KINDNESS',
-      proficiency: 'PROFICIENCY',
+      guts: 'GUTS', courage: 'COURAGE', academics: 'ACADEMICS',
+      kindness: 'KINDNESS', proficiency: 'PROFICIENCY',
     };
     return order.map(id => names[id]);
   }
@@ -211,11 +189,8 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
   private getOrderedColors(): string[] {
     const order = ['guts', 'courage', 'academics', 'kindness', 'proficiency'];
     const colors: Record<string, string> = {
-      guts: '#e65100',
-      courage: '#f9a825',
-      academics: '#1565c0',
-      kindness: '#c2185b',
-      proficiency: '#2e7d32',
+      guts: '#e65100', courage: '#f9a825', academics: '#1565c0',
+      kindness: '#c2185b', proficiency: '#2e7d32',
     };
     return order.map(id => colors[id]);
   }

@@ -1,4 +1,4 @@
-import { Component, input, output, signal, ElementRef, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, input, output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Slot, Task } from '../../models';
 
@@ -9,20 +9,20 @@ import { Slot, Task } from '../../models';
   template: `
     <div class="dropdown-overlay" (click)="onOverlayClick($event)">
       <div class="dropdown-panel">
-        <div class="dropdown-header">Select Task</div>
+        <div class="dropdown-header">SELECT TASK</div>
         <div class="task-list">
           @for (task of tasks(); track task.id) {
             <button class="task-item" (click)="selectTask(task.id)">
               <span class="task-name">{{ task.name }}</span>
               @if (task.statName) {
-                <span class="task-stat">{{ task.statName }}</span>
+                <span class="task-stat">{{ task.statName }} +{{ task.statGain }}</span>
               }
             </button>
           }
         </div>
         @if (slot().status === 'set') {
           <button class="remove-btn" (click)="selectTask(null)">
-            Remove / Free Slot
+            — FREE SLOT —
           </button>
         }
       </div>
@@ -33,30 +33,32 @@ import { Slot, Task } from '../../models';
       position: fixed;
       inset: 0;
       z-index: 100;
+      background: rgba(0,0,0,0.6);
     }
     .dropdown-panel {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #1e1e1e;
-      border: 1px solid rgba(233,30,99,0.3);
-      border-radius: 12px;
-      min-width: 280px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      background: var(--color-card);
+      border: 1px solid var(--color-primary);
+      box-shadow: 0 0 60px var(--color-glow), 0 20px 60px rgba(0,0,0,0.5);
+      min-width: 300px;
+      max-width: 90vw;
       overflow: hidden;
     }
     .dropdown-header {
-      padding: 0.75rem 1rem;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.4);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--color-primary);
+      border-bottom: 1px solid var(--color-border);
+      background: rgba(0,0,0,0.3);
     }
     .task-list {
-      max-height: 240px;
+      max-height: 280px;
       overflow-y: auto;
     }
     .task-item {
@@ -64,37 +66,46 @@ import { Slot, Task } from '../../models';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1rem;
+      padding: 1rem 1.25rem;
       background: none;
       border: none;
       color: #fff;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
       text-align: left;
-      transition: background 0.1s;
+      transition: all 0.1s ease;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .task-item:hover {
       background: rgba(233,30,99,0.2);
+      color: var(--color-primary);
     }
     .task-stat {
       font-size: 0.7rem;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.4);
       text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
     }
     .remove-btn {
       width: 100%;
-      padding: 0.75rem 1rem;
-      background: rgba(255,255,255,0.05);
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.03);
       border: none;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.4);
+      border-top: 1px solid var(--color-border);
+      color: rgba(255,255,255,0.3);
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.1s;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      transition: all 0.1s ease;
     }
     .remove-btn:hover {
-      background: rgba(255,100,100,0.1);
-      color: rgba(255,200,200,0.8);
+      background: rgba(255,80,80,0.1);
+      color: rgba(255,150,150,0.8);
     }
   `]
 })
@@ -103,8 +114,6 @@ export class TaskDropdownComponent implements OnInit, OnDestroy {
   slot = input.required<Slot>();
   taskSelected = output<string | null>();
   closed = output<void>();
-
-  private el = inject(ElementRef);
 
   ngOnInit() {
     document.addEventListener('keydown', this.onKeyDown);

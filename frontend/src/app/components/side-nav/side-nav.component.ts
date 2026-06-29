@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-side-nav',
@@ -17,11 +18,14 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         </a>
         <a class="nav-item" routerLink="/stats" routerLinkActive="active" title="Stats">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="20" x2="18" y2="10"/>
-            <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </a>
+      </div>
+      <div class="nav-bottom">
+        <button class="theme-btn" (click)="cycleTheme()" [title]="'Theme: ' + themeService.currentTheme().toUpperCase()">
+          <span class="theme-dot" [style.background]="getThemeColor()"></span>
+        </button>
       </div>
     </nav>
   `,
@@ -55,6 +59,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       gap: 0.5rem;
       width: 100%;
       align-items: center;
+      flex: 1;
     }
     .nav-item {
       width: 44px;
@@ -62,11 +67,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.35);
       text-decoration: none;
       border-left: 3px solid transparent;
       transition: all 0.2s ease;
-      position: relative;
     }
     .nav-item:hover {
       color: rgba(255,255,255,0.8);
@@ -80,6 +84,41 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       width: 22px;
       height: 22px;
     }
+    .nav-bottom {
+      margin-top: auto;
+    }
+    .theme-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--color-card);
+      border: 2px solid var(--color-border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .theme-btn:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 15px var(--color-glow);
+    }
+    .theme-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      transition: background 0.3s ease;
+    }
   `]
 })
-export class SideNavComponent {}
+export class SideNavComponent {
+  themeService = inject(ThemeService);
+
+  cycleTheme() {
+    this.themeService.cycleTheme();
+  }
+
+  getThemeColor(): string {
+    return this.themeService.getThemeConfig(this.themeService.currentTheme()).color;
+  }
+}
