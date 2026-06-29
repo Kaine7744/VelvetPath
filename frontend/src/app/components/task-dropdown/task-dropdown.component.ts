@@ -9,13 +9,13 @@ import { Slot, Task } from '../../models';
   template: `
     <div class="dropdown-overlay" (click)="onOverlayClick($event)">
       <div class="dropdown-panel">
-        <div class="dropdown-header">SELECT TASK</div>
+        <div class="calling-card-label">▶ SELECT YOUR TARGET</div>
         <div class="task-list">
           @for (task of tasks(); track task.id) {
             <button class="task-item" (click)="selectTask(task.id)">
-              <span class="task-name">{{ task.name }}</span>
+              <span class="task-item-name">{{ task.name }}</span>
               @if (task.statName) {
-                <span class="task-stat">{{ task.statName }} +{{ task.statGain }}</span>
+                <span class="task-item-badge">{{ task.statName }} +{{ task.statGain }}</span>
               }
             </button>
           }
@@ -33,29 +33,32 @@ import { Slot, Task } from '../../models';
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.75);
     }
     .dropdown-panel {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: var(--color-card);
-      border: 1px solid var(--color-primary);
-      box-shadow: 0 0 60px var(--color-glow), 0 20px 60px rgba(0,0,0,0.5);
-      min-width: 300px;
+      background: #0a0a0a;
+      border: 2px solid #e8001a;
+      border-left-width: 6px;
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+      box-shadow: 6px 6px 0 #e8001a;
+      min-width: 340px;
       max-width: 90vw;
       overflow: hidden;
+      padding: 0;
     }
-    .dropdown-header {
-      padding: 0.75rem 1.25rem;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
+    .calling-card-label {
+      font-family: 'Impact', sans-serif;
       font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      color: var(--color-primary);
-      border-bottom: 1px solid var(--color-border);
-      background: rgba(0,0,0,0.3);
+      letter-spacing: 0.3em;
+      color: #e8001a;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      background: rgba(232,0,26,0.1);
+      border-bottom: 1px solid rgba(232,0,26,0.3);
     }
     .task-list {
       max-height: 280px;
@@ -66,46 +69,60 @@ import { Slot, Task } from '../../models';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 1.25rem;
+      padding: 14px 20px;
       background: none;
       border: none;
-      color: #fff;
-      cursor: pointer;
-      font-size: 1rem;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 600;
-      text-align: left;
-      transition: all 0.1s ease;
       border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background 0.05s;
     }
     .task-item:hover {
-      background: rgba(233,30,99,0.2);
-      color: var(--color-primary);
+      background: #e8001a;
     }
-    .task-stat {
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+    .task-item-name {
+      font-family: 'Impact', sans-serif;
       font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(240,240,240,0.7);
+      transition: color 0.05s;
+    }
+    .task-item:hover .task-item-name {
+      color: #fff;
+    }
+    .task-item-badge {
+      font-family: 'Impact', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #ffd700;
+      background: rgba(255,215,0,0.15);
+      padding: 3px 10px;
+      transition: background 0.05s, color 0.05s;
+    }
+    .task-item:hover .task-item-badge {
+      background: rgba(255,215,0,0.25);
+      color: #ffd700;
     }
     .remove-btn {
       width: 100%;
-      padding: 1rem 1.25rem;
+      padding: 14px 20px;
       background: rgba(255,255,255,0.03);
       border: none;
-      border-top: 1px solid var(--color-border);
-      color: rgba(255,255,255,0.3);
+      border-top: 1px solid rgba(232,0,26,0.2);
       cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Impact', sans-serif;
       font-weight: 700;
       font-size: 0.7rem;
       letter-spacing: 0.15em;
-      transition: all 0.1s ease;
+      color: rgba(240,240,240,0.4);
+      transition: background 0.05s, color 0.05s;
     }
     .remove-btn:hover {
-      background: rgba(255,80,80,0.1);
-      color: rgba(255,150,150,0.8);
+      background: #8b0011;
+      color: #fff;
     }
   `]
 })

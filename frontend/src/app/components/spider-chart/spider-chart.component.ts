@@ -1,9 +1,9 @@
-import { Component, OnChanges, ElementRef, ViewChild, AfterViewInit, input, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, OnDestroy, ElementRef, ViewChild, AfterViewInit, input, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chart, RadialLinearScale, ChartDataset } from 'chart.js';
-import { Stat } from '../../models';
+import { Chart, RadialLinearScale, ChartDataset, RadarController, PointElement, LineElement } from 'chart.js';
+import { Skill } from '../../models';
 
-Chart.register(RadialLinearScale);
+Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
 
 @Component({
   selector: 'app-spider-chart',
@@ -36,8 +36,8 @@ Chart.register(RadialLinearScale);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: var(--color-bg);
-      border: 2px solid var(--color-primary);
+      background: #0a0a0a;
+      border: 2px solid #e8001a;
       border-radius: 50%;
       width: 64px;
       height: 64px;
@@ -45,15 +45,15 @@ Chart.register(RadialLinearScale);
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 30px var(--color-glow);
+      box-shadow: 0 0 20px rgba(232,0,26,0.6), 0 0 40px rgba(232,0,26,0.2);
       pointer-events: none;
     }
     .tier-star {
       font-size: 1.2rem;
-      color: var(--color-primary);
+      color: #e8001a;
     }
     .tier-num {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Impact', sans-serif;
       font-weight: 900;
       font-size: 1.4rem;
       color: #fff;
@@ -61,9 +61,9 @@ Chart.register(RadialLinearScale);
     }
   `]
 })
-export class SpiderChartComponent implements AfterViewInit, OnChanges {
+export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
-  stats = input<Stat[]>([]);
+  skills = input<Skill[]>([]);
 
   private chart: Chart | null = null;
   private initialized = false;
@@ -74,7 +74,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['stats'] && this.initialized) {
+    if (changes['skills'] && this.initialized) {
       if (this.chart) {
         this.updateChart();
       } else {
@@ -83,15 +83,32 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  ngOnDestroy() {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+  }
+
   maxTier(): number {
-    const values = this.stats().map(s => s.currentValue);
+    const values = this.skills().map(s => s.currentValue);
     if (!values.length) return 1;
     const max = Math.max(...values);
     return Math.max(1, Math.floor(max / 100) + 1);
   }
 
-  private getStatValue(stat: Stat): number {
-    return Math.min(100, stat.currentValue % 100 || (stat.currentValue > 0 ? 100 : 0));
+  private getThemeVar(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || 'sans-serif';
+  }
+
+  private getThemePrimary(): string {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (theme === 'p5') return '#e8001a';
+    return getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#e91e63';
+  }
+
+  private getSkillValue(skill: Skill): number {
+    return Math.min(100, skill.currentValue % 100 || (skill.currentValue > 0 ? 100 : 0));
   }
 
   private createChart() {
@@ -99,18 +116,19 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const stats = this.stats();
+    const skills = this.skills();
     const labels = this.getOrderedLabels();
-    const data = this.getOrderedData(stats);
+    const data = this.getOrderedData(skills);
 
+    const themePrimary = this.getThemePrimary();
     const gradient = ctx.createRadialGradient(150, 150, 0, 150, 150, 150);
-    gradient.addColorStop(0, 'rgba(233,30,99,0.5)');
-    gradient.addColorStop(1, 'rgba(233,30,99,0.05)');
+    gradient.addColorStop(0, themePrimary + '80');
+    gradient.addColorStop(1, themePrimary + '0d');
 
     const dataset: ChartDataset<'radar'> = {
       data,
       backgroundColor: gradient,
-      borderColor: '#e91e63',
+      borderColor: themePrimary,
       borderWidth: 2,
       pointBackgroundColor: this.getOrderedColors(),
       pointBorderColor: '#fff',
@@ -134,7 +152,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
             grid: { color: 'rgba(255,255,255,0.08)' },
             pointLabels: {
               color: 'rgba(255,255,255,0.9)',
-              font: { family: "'Montserrat', sans-serif", size: 11, weight: 700 },
+              font: { family: this.getThemeVar('--font-body'), size: 11, weight: 700 },
             },
             ticks: { display: false },
           },
@@ -143,16 +161,16 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(15,15,20,0.95)',
-            titleFont: { family: "'Montserrat', sans-serif", size: 13, weight: 700 },
-            bodyFont: { family: "'Noto Sans', sans-serif", size: 12 },
-            borderColor: '#e91e63',
+            titleFont: { family: this.getThemeVar('--font-display'), size: 13, weight: 700 },
+            bodyFont: { family: this.getThemeVar('--font-body'), size: 12 },
+            borderColor: this.getThemePrimary(),
             borderWidth: 1,
             padding: 10,
             callbacks: {
               label: (ctx) => {
-                const stat = stats[ctx.dataIndex];
-                const tier = Math.floor(stat.currentValue / 100) + 1;
-                return ` ${stat.currentValue} / ${tier * 100}`;
+                const skill = skills[ctx.dataIndex];
+                const tier = Math.floor(skill.currentValue / 100) + 1;
+                return ` ${skill.currentValue} / ${tier * 100}`;
               },
             },
           },
@@ -164,9 +182,9 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
 
   private updateChart() {
     if (!this.chart) return;
-    const stats = this.stats();
+    const skills = this.skills();
     this.chart.data.labels = this.getOrderedLabels();
-    this.chart.data.datasets[0].data = this.getOrderedData(stats);
+    this.chart.data.datasets[0].data = this.getOrderedData(skills);
     (this.chart.data.datasets[0] as ChartDataset<'radar'>).pointBackgroundColor = this.getOrderedColors();
     this.chart.update();
   }
@@ -180,10 +198,10 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges {
     return order.map(id => names[id]);
   }
 
-  private getOrderedData(stats: Stat[]): number[] {
+  private getOrderedData(skills: Skill[]): number[] {
     const order = ['guts', 'courage', 'academics', 'kindness', 'proficiency'];
-    const map = Object.fromEntries(stats.map(s => [s.id, s]));
-    return order.map(id => map[id] ? this.getStatValue(map[id]) : 0);
+    const map = Object.fromEntries(skills.map(s => [s.id, s]));
+    return order.map(id => map[id] ? this.getSkillValue(map[id]) : 0);
   }
 
   private getOrderedColors(): string[] {

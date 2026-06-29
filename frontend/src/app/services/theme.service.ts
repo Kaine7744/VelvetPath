@@ -2,54 +2,97 @@ import { Injectable, signal, effect } from '@angular/core';
 
 export type ThemeId = 'p3' | 'p4' | 'p5';
 
-interface ThemeConfig {
+export interface ThemeConfig {
   id: ThemeId;
   name: string;
-  color: string;
+  stars: string;
   cssVars: Record<string, string>;
+  animationClass: string;
 }
 
 const THEMES: Record<ThemeId, ThemeConfig> = {
-  p3: {
-    id: 'p3',
-    name: 'P3',
-    color: '#1a237e',
+  p5: {
+    id: 'p5',
+    name: 'Persona 5',
+    stars: '★',
+    animationClass: 'hover-glitch',
     cssVars: {
-      '--color-primary': '#1a237e',
-      '--color-accent': '#3949ab',
-      '--color-glow': 'rgba(26,35,126,0.5)',
-      '--color-bg': '#0d1b2a',
-      '--color-surface': '#152238',
-      '--color-card': '#1d2d44',
-      '--color-border': '#2a3a5a',
+      '--color-primary': '#e8001a',
+      '--color-accent': '#8b0011',
+      '--color-glow': 'rgba(232,0,26,0.5)',
+      '--color-bg': '#0a0a0a',
+      '--color-surface': '#111111',
+      '--color-card': '#111111',
+      '--color-border': '#2a2a2a',
+      '--color-text': '#f0f0f0',
+      '--color-text-dim': '#444444',
+      '--color-success': '#76ff03',
+      '--font-display': "'Bebas Neue', Impact, sans-serif",
+      '--font-body': "'Noto Sans', sans-serif",
+      '--text-angle': '-8deg',
+      '--text-transform': 'uppercase',
+      '--corner-radius': '0px',
+      '--card-border-width': '3px',
+      '--card-border-style': 'solid',
+      '--glow-spread': '8px',
+      '--glass-blur': '0px',
+      '--animation-style': 'glitch',
     },
   },
   p4: {
     id: 'p4',
-    name: 'P4',
-    color: '#ffca28',
+    name: 'Persona 4',
+    stars: '★',
+    animationClass: 'hover-bounce',
     cssVars: {
-      '--color-primary': '#ffca28',
+      '--color-primary': '#f7d000',
       '--color-accent': '#ffb300',
-      '--color-glow': 'rgba(255,202,40,0.4)',
-      '--color-bg': '#121212',
-      '--color-surface': '#1e1e1e',
-      '--color-card': '#2a2a2a',
-      '--color-border': '#3a3a3a',
+      '--color-glow': 'rgba(255,202,40,0.45)',
+      '--color-bg': '#0c0c0c',
+      '--color-surface': '#181818',
+      '--color-card': '#202020',
+      '--color-border': '#2e2e2e',
+      '--color-text': '#fffde7',
+      '--color-text-dim': 'rgba(255,253,231,0.45)',
+      '--color-success': '#76ff03',
+      '--font-display': "'Fredoka One', cursive",
+      '--font-body': "'Noto Sans', sans-serif",
+      '--text-angle': '0deg',
+      '--text-transform': 'none',
+      '--corner-radius': '6px',
+      '--card-border-width': '1px',
+      '--card-border-style': 'inset',
+      '--glow-spread': '12px',
+      '--glass-blur': '0px',
+      '--animation-style': 'elastic',
     },
   },
-  p5: {
-    id: 'p5',
-    name: 'P5',
-    color: '#e91e63',
+  p3: {
+    id: 'p3',
+    name: 'Persona 3',
+    stars: '★',
+    animationClass: 'card-wave-float',
     cssVars: {
-      '--color-primary': '#e91e63',
-      '--color-accent': '#ff1744',
-      '--color-glow': 'rgba(233,30,99,0.5)',
-      '--color-bg': '#0a0a0f',
-      '--color-surface': '#1a1a24',
-      '--color-card': '#252532',
-      '--color-border': '#3a3a4a',
+      '--color-primary': '#3949ab',
+      '--color-accent': '#1a237e',
+      '--color-glow': 'rgba(57,73,171,0.35)',
+      '--color-bg': '#0d1520',
+      '--color-surface': 'rgba(21,37,60,0.7)',
+      '--color-card': 'rgba(30,50,80,0.55)',
+      '--color-border': 'rgba(100,150,200,0.18)',
+      '--color-text': '#e0e8f0',
+      '--color-text-dim': 'rgba(224,232,240,0.45)',
+      '--color-success': '#4dd0e1',
+      '--font-display': "'Cinzel', serif",
+      '--font-body': "'Noto Sans', sans-serif",
+      '--text-angle': '0deg',
+      '--text-transform': 'uppercase',
+      '--corner-radius': '2px',
+      '--card-border-width': '1px',
+      '--card-border-style': 'solid',
+      '--glow-spread': '25px',
+      '--glass-blur': '12px',
+      '--animation-style': 'wave',
     },
   },
 };
@@ -89,11 +132,19 @@ export class ThemeService {
     this.currentTheme.set(next);
   }
 
-  getThemeConfig(id: ThemeId): ThemeConfig {
+  setTheme(themeId: ThemeId) {
+    this.currentTheme.set(themeId);
+  }
+
+  getConfig(id: ThemeId): ThemeConfig {
     return THEMES[id];
   }
 
-  getAllThemes(): ThemeConfig[] {
+  getCurrentConfig(): ThemeConfig {
+    return THEMES[this.currentTheme()];
+  }
+
+  getAllConfigs(): ThemeConfig[] {
     return THEME_ORDER.map(id => THEMES[id]);
   }
 }

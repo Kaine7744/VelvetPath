@@ -18,9 +18,12 @@ async function migrate() {
 
   console.log('Running migrations...');
 
-  // Stats table
+  // Rename stats → skills (Slice 5)
+  try { db.run("ALTER TABLE stats RENAME TO skills"); } catch(e) { /* may already exist as skills */ }
+
+  // Skills table
   db.run(`
-    CREATE TABLE IF NOT EXISTS stats (
+    CREATE TABLE IF NOT EXISTS skills (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
       description TEXT,
@@ -37,7 +40,7 @@ async function migrate() {
       statId TEXT,
       statGain INTEGER DEFAULT 1,
       createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (statId) REFERENCES stats(id)
+      FOREIGN KEY (statId) REFERENCES skills(id)
     )
   `);
 
@@ -80,8 +83,8 @@ async function migrate() {
     )
   `);
 
-  // Seed default stats (Persona 5 Royal)
-  const defaultStats = [
+  // Seed default skills (Persona 5 Royal)
+  const defaultSkills = [
     { id: 'guts', name: 'Guts', description: 'Courage and bravery' },
     { id: 'courage', name: 'Courage', description: 'Willingness to take risks' },
     { id: 'academics', name: 'Academics', description: 'Knowledge and learning' },
@@ -89,9 +92,9 @@ async function migrate() {
     { id: 'proficiency', name: 'Proficiency', description: 'Skill and dexterity' },
   ];
 
-  for (const stat of defaultStats) {
-    db.run(`INSERT OR IGNORE INTO stats (id, name, description, isDefault, currentValue) VALUES (?, ?, ?, 1, 0)`, [
-      stat.id, stat.name, stat.description
+  for (const skill of defaultSkills) {
+    db.run(`INSERT OR IGNORE INTO skills (id, name, description, isDefault, currentValue) VALUES (?, ?, ?, 1, 0)`, [
+      skill.id, skill.name, skill.description
     ]);
   }
 

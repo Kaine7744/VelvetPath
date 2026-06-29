@@ -11,7 +11,12 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
   imports: [CommonModule, DatePipe, SlotCardComponent],
   template: `
     <div class="day-view">
-      <div class="page-title">DAY PLANNER</div>
+      <div class="page-header">
+        <div class="title-wrap skew-outer">
+          <h1 class="page-title">DAY PLANNER</h1>
+        </div>
+        <div class="drip-divider"></div>
+      </div>
 
       <div class="day-nav">
         <button class="nav-btn" (click)="previousDay()">
@@ -31,28 +36,30 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <div class="slots-container">
-        <app-slot-card
-          [slot]="dayData()?.slots?.morning || emptySlot()"
-          slotName="Morning"
-          [tasks]="tasks()"
-          (taskSelected)="onSlotTaskSelected('morning', $event)"
-          (completed)="onSlotCompleted('morning', $event)"
-        />
-        <app-slot-card
-          [slot]="dayData()?.slots?.afternoon || emptySlot()"
-          slotName="Afternoon"
-          [tasks]="tasks()"
-          (taskSelected)="onSlotTaskSelected('afternoon', $event)"
-          (completed)="onSlotCompleted('afternoon', $event)"
-        />
-        <app-slot-card
-          [slot]="dayData()?.slots?.evening || emptySlot()"
-          slotName="Evening"
-          [tasks]="tasks()"
-          (taskSelected)="onSlotTaskSelected('evening', $event)"
-          (completed)="onSlotCompleted('evening', $event)"
-        />
+      <div class="slots-wrapper skew-outer">
+        <div class="slots-inner">
+          <app-slot-card
+            [slot]="dayData()?.slots?.morning || emptySlot()"
+            slotName="Morning"
+            [tasks]="tasks()"
+            (taskSelected)="onSlotTaskSelected('morning', $event)"
+            (completed)="onSlotCompleted('morning', $event)"
+          />
+          <app-slot-card
+            [slot]="dayData()?.slots?.afternoon || emptySlot()"
+            slotName="Afternoon"
+            [tasks]="tasks()"
+            (taskSelected)="onSlotTaskSelected('afternoon', $event)"
+            (completed)="onSlotCompleted('afternoon', $event)"
+          />
+          <app-slot-card
+            [slot]="dayData()?.slots?.evening || emptySlot()"
+            slotName="Evening"
+            [tasks]="tasks()"
+            (taskSelected)="onSlotTaskSelected('evening', $event)"
+            (completed)="onSlotCompleted('evening', $event)"
+          />
+        </div>
       </div>
     </div>
   `,
@@ -61,14 +68,28 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       min-height: 100vh;
       padding: 2rem;
     }
-    .page-title {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 900;
-      font-size: 2.5rem;
-      color: var(--color-primary);
-      letter-spacing: 0.15em;
-      text-shadow: 0 0 40px var(--color-glow);
+    .page-header {
       margin-bottom: 2rem;
+    }
+    .title-wrap {
+      margin-bottom: 0.5rem;
+    }
+    .page-title {
+      font-family: 'Impact', sans-serif;
+      font-weight: 900;
+      font-size: 3rem;
+      color: #e8001a;
+      letter-spacing: 0.15em;
+      text-shadow: 0 0 30px rgba(232,0,26,0.5);
+      transform: skewX(8deg);
+      display: inline-block;
+      margin: 0;
+    }
+    .drip-divider {
+      height: 16px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23e8001a'/%3E%3C/svg%3E");
+      background-repeat: repeat-x;
+      background-size: 50px 16px;
     }
     .day-nav {
       display: flex;
@@ -79,14 +100,14 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     .nav-btn {
       width: 44px;
       height: 44px;
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
-      color: var(--color-text);
+      background: #111;
+      border: 2px solid #444;
+      color: #f0f0f0;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.15s ease;
+      transition: border-color 0.05s, color 0.05s, box-shadow 0.05s;
       flex-shrink: 0;
     }
     .nav-btn svg {
@@ -94,9 +115,9 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       height: 18px;
     }
     .nav-btn:hover {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 20px var(--color-glow);
-      color: var(--color-primary);
+      border-color: #e8001a;
+      color: #e8001a;
+      box-shadow: 3px 3px 0 #e8001a;
     }
     .date-display {
       flex: 1;
@@ -104,41 +125,45 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
     .day-name {
       display: block;
-      font-size: 0.75rem;
-      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      font-family: 'Impact', sans-serif;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.2em;
-      color: var(--color-primary);
+      letter-spacing: 0.25em;
+      color: #e8001a;
       margin-bottom: 0.25rem;
     }
     .day-full {
       display: block;
-      font-size: 1.6rem;
-      font-family: 'Montserrat', sans-serif;
+      font-size: 1.5rem;
+      font-family: 'Impact', sans-serif;
       font-weight: 900;
-      color: #fff;
-      letter-spacing: 0.02em;
+      color: #f0f0f0;
+      letter-spacing: 0.05em;
     }
     .today-btn {
-      padding: 0.6rem 1.2rem;
+      padding: 10px 20px;
       background: transparent;
-      border: 1px solid var(--color-border);
-      color: rgba(255,255,255,0.6);
-      font-family: 'Montserrat', sans-serif;
+      border: 2px solid #444;
+      color: #f0f0f0;
+      font-family: 'Impact', sans-serif;
       font-weight: 700;
       font-size: 0.7rem;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.2em;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: border-color 0.05s, color 0.05s, box-shadow 0.05s;
       flex-shrink: 0;
     }
     .today-btn:hover {
-      border-color: var(--color-primary);
-      color: var(--color-primary);
-      box-shadow: 0 0 20px var(--color-glow);
+      border-color: #e8001a;
+      color: #e8001a;
+      box-shadow: 3px 3px 0 #e8001a;
     }
-    .slots-container {
+    .slots-wrapper {
+      transform: skewX(-8deg);
+    }
+    .slots-inner {
+      transform: skewX(8deg);
       display: flex;
       flex-direction: column;
       gap: 1rem;

@@ -1,19 +1,134 @@
-/* VelvetPath — Persona 5 Theme */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
+/* VelvetPath — Full Persona Theme System */
 
-:root {
-  --color-primary: #e91e63;
-  --color-accent: #ff1744;
-  --color-glow: rgba(233,30,99,0.5);
-  --color-bg: #0a0a0f;
-  --color-surface: #1a1a24;
-  --color-card: #252532;
-  --color-border: #3a3a4a;
-  --color-text: #ffffff;
-  --color-text-dim: #8888aa;
-  --color-success: #00e676;
+/* ============================================
+   THEME: PERSONA 5 — Rebellion Red / Punk-Jazz
+   ============================================ */
+:root[data-theme="p5"] {
+  /* P5 Spec Colors */
+  --p5-black: #0a0a0a;
+  --p5-panel: #111111;
+  --p5-red: #e8001a;
+  --p5-red-dark: #8b0011;
+  --p5-white: #f0f0f0;
+  --p5-grey: #444444;
+  --p5-yellow: #ffd700;
+
+  /* Map to existing vars */
+  --color-primary: var(--p5-red);
+  --color-accent: var(--p5-red-dark);
+  --color-glow: rgba(232,0,26,0.5);
+  --color-bg: var(--p5-black);
+  --color-surface: var(--p5-panel);
+  --color-card: var(--p5-panel);
+  --color-border: #2a2a2a;
+  --color-text: var(--p5-white);
+  --color-text-dim: var(--p5-grey);
+  --color-success: #76ff03;
+
+  /* Typography */
+  --font-display: 'Impact', 'Bebas Neue', sans-serif;
+  --font-body: 'Noto Sans', sans-serif;
+  --text-angle: -8deg;
+  --text-transform: uppercase;
+
+  /* Layout */
+  --corner-radius: 0px;
+  --card-border-width: 3px;
+  --card-border-style: solid;
+
+  /* Effects */
+  --glow-spread: 8px;
+  --bg-pattern: repeating-conic-gradient(rgba(232,0,26,0.04) 0% 25%, transparent 0% 50%);
+  --bg-pattern-size: 60px 60px;
+  --scanline-overlay: false;
+  --glass-blur: 0px;
+  --card-transform: none;
+  --animation-base: 0.12s;
+  --animation-style: glitch;
+  --card-shadow: 4px 4px 0 var(--p5-red);
 }
 
+/* ============================================
+   THEME: PERSONA 4 — Retro-Pop Yellow / TV
+   ============================================ */
+:root[data-theme="p4"] {
+  /* Colors */
+  --color-primary: #ffca28;
+  --color-accent: #ffb300;
+  --color-glow: rgba(255,202,40,0.45);
+  --color-bg: #0c0c0c;
+  --color-surface: #181818;
+  --color-card: #202020;
+  --color-border: #2e2e2e;
+  --color-text: #fffde7;
+  --color-text-dim: rgba(255,253,231,0.45);
+  --color-success: #76ff03;
+
+  /* Typography */
+  --font-display: 'Fredoka One', cursive;
+  --font-body: 'Noto Sans', sans-serif;
+  --text-angle: 0deg;
+  --text-transform: none;
+
+  /* Layout */
+  --corner-radius: 6px;
+  --card-border-width: 1px;
+  --card-border-style: inset;
+
+  /* Effects */
+  --glow-spread: 12px;
+  --bg-pattern: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+  --bg-pattern-size: auto;
+  --scanline-overlay: true;
+  --glass-blur: 0px;
+  --card-transform: rotate(-0.8deg);
+  --animation-base: 0.3s;
+  --animation-style: elastic;
+  --card-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* ============================================
+   THEME: PERSONA 3 — Moonlight Blue / Y2K-Gothic
+   ============================================ */
+:root[data-theme="p3"] {
+  /* Colors */
+  --color-primary: #3949ab;
+  --color-accent: #1a237e;
+  --color-glow: rgba(57,73,171,0.35);
+  --color-bg: #0d1520;
+  --color-surface: rgba(21,37,60,0.7);
+  --color-card: rgba(30,50,80,0.55);
+  --color-border: rgba(100,150,200,0.18);
+  --color-text: #e0e8f0;
+  --color-text-dim: rgba(224,232,240,0.45);
+  --color-success: #4dd0e1;
+
+  /* Typography */
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Noto Sans', sans-serif;
+  --text-angle: 0deg;
+  --text-transform: uppercase;
+
+  /* Layout */
+  --corner-radius: 2px;
+  --card-border-width: 1px;
+  --card-border-style: solid;
+
+  /* Effects */
+  --glow-spread: 25px;
+  --bg-pattern: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200'><path d='M0 100 Q100 70 200 100 T400 100' fill='none' stroke='rgba(57,73,171,0.05)' stroke-width='30'/></svg>");
+  --bg-pattern-size: 100% 100%;
+  --scanline-overlay: false;
+  --glass-blur: 12px;
+  --card-transform: none;
+  --animation-base: 0.4s;
+  --animation-style: wave;
+  --card-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(57,73,171,0.1);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -25,15 +140,19 @@ html, body {
 }
 
 body {
-  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
   background: var(--color-bg);
+  background-image: var(--bg-pattern);
+  background-size: var(--bg-pattern-size);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+  position: relative;
 }
 
 button {
   font-family: inherit;
+  cursor: pointer;
 }
 
 a {
@@ -41,9 +160,35 @@ a {
   text-decoration: none;
 }
 
-/* Scrollbar */
+/* ============================================
+   P4 SCANLINE OVERLAY
+   ============================================ */
+:root[data-theme="p4"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0.07) 2px,
+    rgba(0,0,0,0.07) 4px
+  );
+  animation: scanline-drift 10s linear infinite;
+}
+
+@keyframes scanline-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 12px; }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -56,28 +201,419 @@ a {
   background: var(--color-primary);
 }
 
-/* Selection */
+/* ============================================
+   SELECTION
+   ============================================ */
 ::selection {
   background: var(--color-primary);
   color: white;
 }
 
-/* Focus */
+/* ============================================
+   FOCUS
+   ============================================ */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  box-shadow: 0 0 10px var(--color-glow);
+  box-shadow: 0 0 12px var(--color-glow);
 }
 
-/* Background grid pattern */
-body::before {
-  content: '';
+/* ============================================
+   GLITCH ANIMATION (P5)
+   ============================================ */
+@keyframes glitch-hover {
+  0% { opacity: 1; transform: translateX(0); }
+  20% { opacity: 0.85; transform: translateX(-3px); }
+  40% { opacity: 1; transform: translateX(2px); }
+  60% { opacity: 0.9; transform: translateX(-1px); }
+  80% { opacity: 1; transform: translateX(1px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes glitch-click {
+  0% { transform: translateX(0) scale(1); }
+  30% { transform: translateX(-4px) scale(0.98); }
+  60% { transform: translateX(3px) scale(1.01); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+/* ============================================
+   ELASTIC BOUNCE (P4)
+   ============================================ */
+@keyframes bounce-in {
+  0% { transform: scale(0.85) translateY(12px); opacity: 0; }
+  55% { transform: scale(1.06) translateY(-4px); opacity: 1; }
+  75% { transform: scale(0.96) translateY(2px); }
+  90% { transform: scale(1.02) translateY(-1px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+@keyframes bounce-hover {
+  0% { transform: var(--card-transform) scale(1); }
+  50% { transform: var(--card-transform) scale(1.04); }
+  100% { transform: var(--card-transform) scale(1.02); }
+}
+
+/* ============================================
+   WAVE SLIDE (P3)
+   ============================================ */
+@keyframes wave-in {
+  0% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes wave-float {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ============================================
+   SLAM ENTRANCE (P5)
+   ============================================ */
+@keyframes slam-in {
+  0% { transform: translateX(-24px) skewX(-6deg); opacity: 0; }
+  100% { transform: translateX(0) skewX(0); opacity: 1; }
+}
+
+/* ============================================
+   P5 CONFIRM PULSE
+   ============================================ */
+@keyframes p5-confirm-pulse {
+  0%, 100% { box-shadow: 0 0 15px var(--color-success); }
+  50% { box-shadow: 0 0 30px var(--color-success), 0 0 50px color-mix(in srgb, var(--color-success) 40%, transparent); }
+}
+
+/* ============================================
+   THEME-SPECIFIC COMPONENT CLASSES
+   ============================================ */
+
+/* P5 active states */
+:root[data-theme="p5"] .hover-glitch:hover {
+  animation: glitch-hover 0.3s ease-out;
+}
+
+:root[data-theme="p5"] .click-glitch:active {
+  animation: glitch-click 0.15s ease-out;
+}
+
+:root[data-theme="p5"] .card-slam {
+  animation: slam-in 0.25s ease-out;
+}
+
+/* P4 active states */
+:root[data-theme="p4"] .hover-bounce:hover {
+  animation: bounce-hover 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root[data-theme="p4"] .card-bounce-in {
+  animation: bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* P3 active states */
+:root[data-theme="p3"] .card-wave-in {
+  animation: wave-in 0.5s ease-out;
+}
+
+:root[data-theme="p3"] .card-wave-float:hover {
+  animation: wave-float 2s ease-in-out infinite;
+}
+
+/* ============================================
+   P5 COMPONENT CLASSES
+   ============================================ */
+
+/* P5 panel with diagonal cut and hard shadow */
+.p5-panel {
+  background: var(--p5-panel, var(--color-card));
+  border-left: 6px solid var(--p5-red, var(--color-primary));
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  padding: 20px 24px;
+  position: relative;
+}
+
+.hard-shadow {
+  box-shadow: 4px 4px 0 var(--p5-red, var(--color-primary));
+}
+
+/* Calling card — P5 alert/announcement style */
+.calling-card {
+  background: var(--p5-black, var(--color-bg));
+  border: 2px solid var(--p5-red, var(--color-primary));
+  border-left-width: 6px;
+  padding: 20px 24px;
+  transform: skewX(-3deg);
+  box-shadow: 6px 6px 0 var(--p5-red, var(--color-primary));
+}
+
+.calling-card-label {
+  font-family: 'Impact', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: var(--p5-red, var(--color-primary));
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+/* Skewed heading counter-corrected */
+.skew-heading {
+  transform: skewX(var(--text-angle));
+  display: inline-block;
+}
+.skew-heading-inner {
+  transform: skewX(calc(-1 * var(--text-angle)));
+  display: inline-block;
+}
+
+/* P5 select bar (vertical menu item) */
+.p5-select-bar {
+  display: block;
+  padding: 12px 20px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: var(--color-card);
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: background 0.05s, border-color 0.05s;
+}
+.p5-select-bar:hover,
+.p5-select-bar.active {
+  background: var(--p5-red, var(--color-primary));
+  border-left-color: var(--p5-yellow, #ffd700);
+  color: #fff;
+}
+
+/* P5 inputs */
+.p5-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--color-primary);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-sizing: border-box;
+}
+.p5-input::placeholder {
+  color: var(--color-text-dim);
+  opacity: 0.6;
+}
+
+/* P5 buttons */
+.p5-btn {
+  padding: 10px 20px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  transition: background 0.05s;
+}
+.p5-btn-confirm {
+  background: var(--p5-red, var(--color-primary));
+  color: #fff;
+}
+.p5-btn-confirm:hover {
+  background: var(--p5-red-dark, #8b0011);
+}
+.p5-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--color-text-dim);
+  color: var(--color-text-dim);
+}
+.p5-btn-cancel:hover {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+/* ============================================
+   P5 DESIGN SYSTEM — AGGRESSIVE STYLES
+   ============================================ */
+
+/* --- Skew Counter-Correction Pattern --- */
+.skew-outer {
+  transform: skewX(-8deg);
+  overflow: visible;
+}
+.skew-inner {
+  transform: skewX(8deg);
+  display: inline-block;
+}
+.skew-wrapper {
+  transform: skewX(-8deg);
+}
+.skew-content {
+  transform: skewX(8deg);
+}
+
+/* --- P5 Diagonal Panel (clip-path + red left border) --- */
+.p5-panel-diagonal {
+  background: #111111;
+  border-left: 6px solid #e8001a;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  padding: 20px 28px;
+  position: relative;
+}
+.p5-panel-diagonal .panel-content {
+  transform: skewX(8deg);
+  transform-origin: left center;
+}
+
+/* Update .p5-panel to match spec exactly */
+.p5-panel {
+  background: #111111;
+  border-left: 6px solid #e8001a;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  padding: 20px 24px;
+  position: relative;
+}
+
+/* --- Hard Offset Shadow (no blur — P5 signature) --- */
+.hard-shadow {
+  box-shadow: 4px 4px 0 #e8001a;
+}
+.hard-shadow-sm {
+  box-shadow: 3px 3px 0 #e8001a;
+}
+.hard-shadow-lg {
+  box-shadow: 6px 6px 0 #e8001a;
+}
+
+/* --- P5 Vertical Navigation Item (instant hover) --- */
+.p5-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  font-family: 'Impact', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(240, 240, 240, 0.5);
+  background: transparent;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: background 0.05s, border-color 0.05s, color 0.05s;
+}
+.p5-nav-item:hover,
+.p5-nav-item.active {
+  background: #e8001a;
+  border-left-color: #ffd700;
+  color: #fff;
+}
+
+/* --- P5 Primary Button --- */
+.p5-btn-primary {
+  padding: 10px 24px;
+  font-family: 'Impact', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: #e8001a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  transition: background 0.05s;
+}
+.p5-btn-primary:hover {
+  background: #8b0011;
+}
+
+/* --- P5 Secondary Button --- */
+.p5-btn-secondary {
+  padding: 10px 24px;
+  font-family: 'Impact', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: transparent;
+  color: #f0f0f0;
+  border: 2px solid #444444;
+  cursor: pointer;
+  transition: border-color 0.05s, color 0.05s;
+}
+.p5-btn-secondary:hover {
+  border-color: #e8001a;
+  color: #e8001a;
+}
+
+/* --- P5 Flash Overlay (page transition) --- */
+.p5-flash-overlay {
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background: #e8001a;
+  z-index: 9999;
   pointer-events: none;
-  z-index: 0;
+  animation: p5-page-flash 0.3s ease-out forwards;
+}
+@keyframes p5-page-flash {
+  0%   { opacity: 0.85; }
+  70%  { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+/* --- P5 Drip Divider (SVG) --- */
+.drip-divider {
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23e8001a'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 50px 16px;
+  margin: 1rem 0;
+}
+
+/* --- P5 Scrollbar --- */
+:root[data-theme="p5"] ::-webkit-scrollbar-thumb {
+  background: #e8001a;
+}
+:root[data-theme="p5"] ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+:root[data-theme="p5"] ::-webkit-scrollbar {
+  width: 6px;
+}
+:root[data-theme="p5"] ::-webkit-scrollbar-thumb:hover {
+  background: #8b0011;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.display-font {
+  font-family: var(--font-display);
+}
+
+.text-angle {
+  transform: rotate(var(--text-angle));
+}
+
+.text-upper {
+  text-transform: var(--text-transform);
+}
+
+.card-radius {
+  border-radius: var(--corner-radius);
+}
+
+.glass-panel {
+  background: var(--color-card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.card-border {
+  border: var(--card-border-width) var(--card-border-style) var(--color-border);
+}
+
+.glow-shadow {
+  box-shadow: 0 0 var(--glow-spread) var(--color-glow);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px var(--color-glow);
 }

@@ -188,13 +188,13 @@ const dbModule = {
   async growStat(statId, amount) {
     if (!statId || !amount) return 0;
     await getDb();
-    const stmt = db.prepare('SELECT currentValue FROM stats WHERE id = ?');
+    const stmt = db.prepare('SELECT currentValue FROM skills WHERE id = ?');
     stmt.bind([statId]);
     if (!stmt.step()) { stmt.free(); return 0; }
     const row = stmt.getAsObject();
     stmt.free();
     const newValue = row.currentValue + amount;
-    db.run('UPDATE stats SET currentValue = ? WHERE id = ?', [newValue, statId]);
+    db.run('UPDATE skills SET currentValue = ? WHERE id = ?', [newValue, statId]);
     saveDb();
     return amount;
   },
@@ -227,7 +227,7 @@ const dbModule = {
     const stmt = db.prepare(`
       SELECT t.*, s.name as statName
       FROM tasks t
-      LEFT JOIN stats s ON t.statId = s.id
+      LEFT JOIN skills s ON t.statId = s.id
       ORDER BY t.createdAt DESC
     `);
     while (stmt.step()) {
@@ -247,32 +247,61 @@ const dbModule = {
     return { id, name, statId, statGain: statGain || 1 };
   },
 
+  async updateTask(id, { name, statId, statGain }) {
+    await getDb();
+    const updates = [], values = [];
+    if (name !== undefined) { updates.push('name = ?'); values.push(name); }
+    if (statId !== undefined) { updates.push('statId = ?'); values.push(statId || null); }
+    if (statGain !== undefined) { updates.push('statGain = ?'); values.push(statGain); }
+    if (!updates.length) return;
+    values.push(id);
+    db.run(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`, values);
+    saveDb();
+  },
+
   async deleteTask(id) {
     await getDb();
     db.run('DELETE FROM tasks WHERE id = ?', [id]);
     saveDb();
   },
 
-  // Stats
-  async getAllStats() {
+  // Skills
+  async getAllSkills() {
     await getDb();
-    const stats = [];
-    const stmt = db.prepare('SELECT * FROM stats ORDER BY isDefault DESC, name ASC');
+    const skills = [];
+    const stmt = db.prepare('SELECT * FROM skills ORDER BY isDefault DESC, name ASC');
     while (stmt.step()) {
-      stats.push(stmt.getAsObject());
+      skills.push(stmt.getAsObject());
     }
     stmt.free();
-    return stats;
+    return skills;
   },
 
-  async createStat({ name, description }) {
+  async createSkill({ name, description }) {
     await getDb();
     const id = name.toLowerCase().replace(/\s+/g, '-');
-    db.run(`INSERT INTO stats (id, name, description, isDefault, currentValue) VALUES (?, ?, ?, 0, 0)`, [
+    db.run(`INSERT INTO skills (id, name, description, isDefault, currentValue) VALUES (?, ?, ?, 0, 0)`, [
       id, name, description || ''
     ]);
     saveDb();
     return { id, name, description, isDefault: false, currentValue: 0 };
+  },
+
+  async updateSkill(id, { name, description }) {
+    await getDb();
+    const updates = [], values = [];
+    if (name !== undefined) { updates.push('name = ?'); values.push(name); }
+    if (description !== undefined) { updates.push('description = ?'); values.push(description); }
+    if (!updates.length) return;
+    values.push(id);
+    db.run(`UPDATE skills SET ${updates.join(', ')} WHERE id = ?`, values);
+    saveDb();
+  },
+
+  async deleteSkill(id) {
+    await getDb();
+    db.run('DELETE FROM skills WHERE id = ?', [id]);
+    saveDb();
   },
 
   // Templates

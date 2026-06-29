@@ -36,7 +36,7 @@ export interface Task {
   createdAt: string;
 }
 
-export interface Stat {
+export interface Skill {
   id: string;
   name: string;
   description: string;

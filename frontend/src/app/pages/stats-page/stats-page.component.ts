@@ -39,17 +39,22 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
       padding: 2rem;
     }
     .page-title {
-      font-family: 'Montserrat', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 2.5rem;
       color: var(--color-primary);
       letter-spacing: 0.15em;
       text-shadow: 0 0 40px var(--color-glow);
       margin-bottom: 2rem;
+      transform: rotate(var(--text-angle));
+      display: inline-block;
+      text-transform: var(--text-transform);
     }
     .chart-container {
       background: var(--color-card);
-      border: 1px solid var(--color-border);
+      border: var(--card-border-width) var(--card-border-style) var(--color-border);
+      border-radius: var(--corner-radius);
+      backdrop-filter: blur(var(--glass-blur));
       padding: 2.5rem;
       margin-bottom: 2rem;
       position: relative;
@@ -59,8 +64,9 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
       position: absolute;
       inset: -1px;
       border: 1px solid var(--color-primary);
-      opacity: 0.25;
+      opacity: 0.2;
       pointer-events: none;
+      border-radius: inherit;
     }
     .stats-grid {
       display: flex;
@@ -91,17 +97,17 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
       min-width: 0;
     }
     .stat-name {
-      font-family: 'Montserrat', sans-serif;
+      font-family: var(--font-display);
       font-weight: 800;
       font-size: 0.75rem;
       letter-spacing: 0.15em;
-      color: #fff;
-      text-transform: uppercase;
+      color: var(--color-text);
+      text-transform: var(--text-transform);
       margin-bottom: 0.4rem;
     }
     .stat-bar-track {
       height: 6px;
-      background: rgba(255,255,255,0.08);
+      background: color-mix(in srgb, var(--color-text) 8%, transparent);
       overflow: hidden;
     }
     .stat-bar-fill {
@@ -110,7 +116,7 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
       box-shadow: 0 0 8px currentColor;
     }
     .stat-tier {
-      font-family: 'Montserrat', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 1.2rem;
       color: var(--color-primary);
@@ -120,10 +126,10 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
       flex-shrink: 0;
     }
     .stat-value {
-      font-family: 'Montserrat', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 1.5rem;
-      color: #fff;
+      color: var(--color-text);
       width: 52px;
       text-align: right;
       flex-shrink: 0;

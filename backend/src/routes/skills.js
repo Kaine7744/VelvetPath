@@ -2,43 +2,42 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 
-// GET /api/tasks
+// GET /api/skills
 router.get('/', async (req, res) => {
   try {
-    const tasks = await db.getAllTasks();
-    res.json(tasks);
+    const skills = await db.getAllSkills();
+    res.json(skills);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/tasks
+// POST /api/skills
 router.post('/', async (req, res) => {
   try {
-    const { name, statId, statGain } = req.body;
-    const task = await db.createTask({ name, statId, statGain });
-    res.json(task);
+    const { name, description } = req.body;
+    const skill = await db.createSkill({ name, description });
+    res.json(skill);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// PUT /api/tasks/:id
+// PUT /api/skills/:id
 router.put('/:id', async (req, res) => {
   try {
-    const { name, statId, statGain } = req.body;
-    await db.updateTask(req.params.id, { name, statId, statGain });
+    const { name, description } = req.body;
+    await db.updateSkill(req.params.id, { name, description });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE /api/tasks/:id
+// DELETE /api/skills/:id
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    await db.deleteTask(id);
+    await db.deleteSkill(req.params.id);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -12,7 +12,7 @@ app.use(express.json());
 // API Routes
 app.use('/api/days', require('./routes/days'));
 app.use('/api/tasks', require('./routes/tasks'));
-app.use('/api/stats', require('./routes/stats'));
+app.use('/api/skills', require('./routes/skills'));
 app.use('/api/templates', require('./routes/templates'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/statistics', require('./routes/statistics'));
