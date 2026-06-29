@@ -38,21 +38,21 @@
 ---
 
 ## 🔄 Slice 3 — Persona UI (in progress)
-**Status:** Side nav + Spider chart done (`e2f6d47`)
+**Status:** Mostly done — theme switcher + UI polish just committed (`557772e`)
 
 ### Features (done)
 - [x] Side-Navigation (P5 Style)
 - [x] Spider/Radar Chart für Stats
 - [x] Tier-System (★×N) im Spider-Chart + Stat-Liste
 - [x] P5 Dark Theme (CSS Custom Properties)
-- [x] Montserrat Font
-- [x] Grid-Pattern Hintergrund
+- [x] Montserrat Font, Grid-Pattern Hintergrund
+- [x] Theme-Switcher (P3 / P4 / P5) — cycles on click in SideNav
+- [x] Glow-Effekte auf Slot-Cards (left border glow on hover)
+- [x] Persona-Style Check-Button
+- [x] UI Polish: P5 typography, borders, spacing
 
 ### Features (remaining)
-- [ ] Glow-Effekte auf Slot-Cards animiert
-- [ ] Persona-Style Check-Button Animation
-- [ ] Tier-Up Animation (bei 100 erreichen)
-- [ ] Theme-Switcher (P3 / P4 / P5)
+- [ ] Tier-Up Animation (bei 100 erreichen) — needs growth event from backend
 - [ ] Page-Transition-Animationen
 
 ---
