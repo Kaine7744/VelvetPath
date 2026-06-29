@@ -8,8 +8,8 @@ import { SideNavComponent } from './components/side-nav/side-nav.component';
   standalone: true,
   imports: [RouterOutlet, SideNavComponent],
   template: `
-    @if (showFlash()) {
-      <div class="p5-flash-overlay"></div>
+    @if (transitionClass()) {
+      <div [class]="'transition-overlay ' + transitionClass()"></div>
     }
     <app-side-nav />
     <main class="main-content">
@@ -30,16 +30,21 @@ import { SideNavComponent } from './components/side-nav/side-nav.component';
 })
 export class AppComponent {
   private router = inject(Router);
-  showFlash = signal(false);
+  transitionClass = signal('');
 
   constructor() {
     this.router.events.pipe(
       filter(e => e instanceof NavigationStart)
     ).subscribe(() => {
-      if (document.documentElement.getAttribute('data-theme') === 'p5') {
-        this.showFlash.set(true);
-        setTimeout(() => this.showFlash.set(false), 300);
+      const theme = document.documentElement.getAttribute('data-theme');
+      if (theme === 'p5') {
+        this.transitionClass.set('p5-transition-overlay');
+      } else if (theme === 'p4') {
+        this.transitionClass.set('p4-transition-overlay');
+      } else {
+        this.transitionClass.set('p3-transition-overlay');
       }
+      setTimeout(() => this.transitionClass.set(''), 500);
     });
   }
 }
