@@ -72,11 +72,16 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private getSkillValue(skill: Skill): number {
-    return Math.min(100, skill.currentValue % 100 || (skill.currentValue > 0 ? 100 : 0));
+    const inner = skill.currentValue % 100;
+    if (inner === 0 && skill.currentValue > 0) return 100; // boundary → edge
+    return Math.min(100, inner || (skill.currentValue > 0 ? 100 : 0));
   }
 
   private getScaleMax(): number {
     const maxStatValue = Math.max(...this.skills().map(s => s.currentValue), 0);
+    if (maxStatValue % 100 === 0 && maxStatValue > 0) {
+      return maxStatValue + 100; // don't double-count the boundary tier
+    }
     return Math.ceil(maxStatValue / 100) * 100 + 100;
   }
 
