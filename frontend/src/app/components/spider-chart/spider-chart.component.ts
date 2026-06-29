@@ -36,8 +36,8 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #0a0a0a;
-      border: 2px solid #e8001a;
+      background: var(--color-bg);
+      border: 2px solid var(--color-primary);
       border-radius: 50%;
       width: 64px;
       height: 64px;
@@ -45,18 +45,18 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px rgba(232,0,26,0.6), 0 0 40px rgba(232,0,26,0.2);
+      box-shadow: 0 0 20px var(--color-glow);
       pointer-events: none;
     }
     .tier-star {
       font-size: 1.2rem;
-      color: #e8001a;
+      color: var(--color-primary);
     }
     .tier-num {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 1.4rem;
-      color: #fff;
+      color: var(--color-text);
       line-height: 1;
     }
   `]
@@ -102,9 +102,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private getThemePrimary(): string {
-    const theme = document.documentElement.getAttribute('data-theme');
-    if (theme === 'p5') return '#e8001a';
-    return getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#e91e63';
+    return getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#e8001a';
   }
 
   private getSkillValue(skill: Skill): number {

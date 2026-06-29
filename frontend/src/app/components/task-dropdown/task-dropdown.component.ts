@@ -40,25 +40,25 @@ import { Slot, Task } from '../../models';
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #0a0a0a;
-      border: 2px solid #e8001a;
+      background: var(--color-bg);
+      border: 2px solid var(--color-primary);
       border-left-width: 6px;
       clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-      box-shadow: 6px 6px 0 #e8001a;
+      box-shadow: 6px 6px 0 var(--color-primary);
       min-width: 340px;
       max-width: 90vw;
       overflow: hidden;
       padding: 0;
     }
     .calling-card-label {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.65rem;
       letter-spacing: 0.3em;
-      color: #e8001a;
+      color: var(--color-primary);
       text-transform: uppercase;
       padding: 12px 20px;
-      background: rgba(232,0,26,0.1);
-      border-bottom: 1px solid rgba(232,0,26,0.3);
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
     }
     .task-list {
       max-height: 280px;
@@ -72,56 +72,56 @@ import { Slot, Task } from '../../models';
       padding: 14px 20px;
       background: none;
       border: none;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-text) 5%, transparent);
       cursor: pointer;
       transition: background 0.05s;
     }
     .task-item:hover {
-      background: #e8001a;
+      background: var(--color-primary);
     }
     .task-item-name {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 1.1rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: rgba(240,240,240,0.7);
+      color: var(--color-text);
       transition: color 0.05s;
     }
     .task-item:hover .task-item-name {
       color: #fff;
     }
     .task-item-badge {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #ffd700;
-      background: rgba(255,215,0,0.15);
+      color: var(--color-accent);
+      background: color-mix(in srgb, var(--color-accent) 15%, transparent);
       padding: 3px 10px;
       transition: background 0.05s, color 0.05s;
     }
     .task-item:hover .task-item-badge {
-      background: rgba(255,215,0,0.25);
-      color: #ffd700;
+      background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+      color: var(--color-accent);
     }
     .remove-btn {
       width: 100%;
       padding: 14px 20px;
-      background: rgba(255,255,255,0.03);
+      background: color-mix(in srgb, var(--color-text) 3%, transparent);
       border: none;
-      border-top: 1px solid rgba(232,0,26,0.2);
+      border-top: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
       cursor: pointer;
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 0.7rem;
       letter-spacing: 0.15em;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       transition: background 0.05s, color 0.05s;
     }
     .remove-btn:hover {
-      background: #8b0011;
+      background: var(--color-accent);
       color: #fff;
     }
   `]

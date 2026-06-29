@@ -81,16 +81,16 @@ import { ThemeService } from '../../services/theme.service';
       overflow: visible;
     }
     .slot-card {
-      background: #111111;
-      border: 1px solid #2a2a2a;
-      border-left: 6px solid #e8001a;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-left: 6px solid var(--color-primary);
       padding: 1.25rem 1.5rem;
       cursor: pointer;
       position: relative;
       overflow: hidden;
       border-radius: 0;
       clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-      box-shadow: 4px 4px 0 #e8001a;
+      box-shadow: var(--card-shadow);
       transition: box-shadow 0.05s, border-color 0.05s;
     }
     .slot-card::before {
@@ -100,40 +100,40 @@ import { ThemeService } from '../../services/theme.service';
       top: 0;
       bottom: 0;
       width: 6px;
-      background: #e8001a;
+      background: var(--color-primary);
     }
     .slot-card.free {
       opacity: 0.5;
     }
     .slot-card.set {
-      border-color: rgba(232,0,26,0.3);
-      border-left-color: #e8001a;
+      border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+      border-left-color: var(--color-primary);
     }
     .slot-card.set::before {
-      background: #e8001a;
+      background: var(--color-primary);
     }
     .slot-card.completed {
       opacity: 0.75;
     }
     .slot-card.completed::before {
-      background: #76ff03;
+      background: var(--color-success);
     }
     .slot-card:hover {
-      box-shadow: 6px 6px 0 #e8001a;
+      box-shadow: 6px 6px 0 var(--color-primary);
     }
     .slot-label {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 0.6rem;
       letter-spacing: 0.2em;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       margin-bottom: 0.75rem;
       text-transform: uppercase;
       display: block;
       transition: color 0.05s;
     }
     .slot-card:hover .slot-label {
-      color: #e8001a;
+      color: var(--color-primary);
     }
     .slot-main {
       display: flex;
@@ -145,32 +145,32 @@ import { ThemeService } from '../../services/theme.service';
       min-width: 0;
     }
     .free-text {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 600;
       font-size: 0.8rem;
       letter-spacing: 0.15em;
-      color: rgba(240,240,240,0.3);
+      color: var(--color-text-dim);
     }
     .task-name {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 1.5rem;
-      color: #f0f0f0;
+      color: var(--color-text);
       letter-spacing: 0.02em;
       transition: all 0.05s ease;
       display: block;
     }
     .task-name.done {
       text-decoration: line-through;
-      color: rgba(240,240,240,0.3);
+      color: var(--color-text-dim);
     }
     .check-btn {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      border: 2px solid rgba(118,255,3,0.4);
+      border: 2px solid color-mix(in srgb, var(--color-success) 40%, transparent);
       background: transparent;
-      color: rgba(118,255,3,0.7);
+      color: color-mix(in srgb, var(--color-success) 70%, transparent);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -183,22 +183,22 @@ import { ThemeService } from '../../services/theme.service';
       height: 18px;
     }
     .check-btn:hover {
-      background: rgba(118,255,3,0.15);
-      border-color: #76ff03;
-      color: #76ff03;
-      box-shadow: 0 0 20px rgba(118,255,3,0.4);
+      background: color-mix(in srgb, var(--color-success) 15%, transparent);
+      border-color: var(--color-success);
+      color: var(--color-success);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--color-success) 40%, transparent);
     }
     .done-badge {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: rgba(118,255,3,0.15);
-      border: 2px solid #76ff03;
-      color: #76ff03;
+      background: color-mix(in srgb, var(--color-success) 15%, transparent);
+      border: 2px solid var(--color-success);
+      color: var(--color-success);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px rgba(118,255,3,0.3);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--color-success) 30%, transparent);
       flex-shrink: 0;
     }
     .done-badge.p5-confirm-pulse {
@@ -213,7 +213,7 @@ import { ThemeService } from '../../services/theme.service';
     }
     .stat-badge {
       display: inline-block;
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 0.55rem;
       letter-spacing: 0.12em;
@@ -229,11 +229,11 @@ import { ThemeService } from '../../services/theme.service';
       position: absolute;
       top: 1rem;
       right: 1rem;
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 1rem;
-      color: #76ff03;
-      text-shadow: 0 0 15px rgba(118,255,3,0.8);
+      color: var(--color-success);
+      text-shadow: 0 0 15px var(--color-glow);
       pointer-events: none;
       animation: floatUp 2s ease-out forwards;
     }
@@ -243,8 +243,8 @@ import { ThemeService } from '../../services/theme.service';
       100% { opacity: 0; transform: translateY(-50px); }
     }
     @keyframes p5-confirm-pulse {
-      0%, 100% { box-shadow: 0 0 15px #76ff03; }
-      50% { box-shadow: 0 0 30px #76ff03, 0 0 50px rgba(118,255,3,0.4); }
+      0%, 100% { box-shadow: 0 0 15px var(--color-success); }
+      50% { box-shadow: 0 0 30px var(--color-success), 0 0 50px color-mix(in srgb, var(--color-success) 40%, transparent); }
     }
   `]
 })

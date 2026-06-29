@@ -75,12 +75,12 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       margin-bottom: 0.5rem;
     }
     .page-title {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 3rem;
-      color: #e8001a;
+      color: var(--color-primary);
       letter-spacing: 0.15em;
-      text-shadow: 0 0 30px rgba(232,0,26,0.5);
+      text-shadow: 0 0 30px var(--color-glow);
       transform: skewX(8deg);
       display: inline-block;
       margin: 0;
@@ -91,6 +91,12 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       background-repeat: repeat-x;
       background-size: 50px 16px;
     }
+    :root[data-theme="p4"] .drip-divider {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23f7d000'/%3E%3C/svg%3E");
+    }
+    :root[data-theme="p3"] .drip-divider {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%2300b4c8'/%3E%3C/svg%3E");
+    }
     .day-nav {
       display: flex;
       align-items: center;
@@ -100,9 +106,9 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     .nav-btn {
       width: 44px;
       height: 44px;
-      background: #111;
-      border: 2px solid #444;
-      color: #f0f0f0;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      color: var(--color-text);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -115,9 +121,9 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       height: 18px;
     }
     .nav-btn:hover {
-      border-color: #e8001a;
-      color: #e8001a;
-      box-shadow: 3px 3px 0 #e8001a;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      box-shadow: 3px 3px 0 var(--color-primary);
     }
     .date-display {
       flex: 1;
@@ -126,27 +132,27 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     .day-name {
       display: block;
       font-size: 0.7rem;
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.25em;
-      color: #e8001a;
+      color: var(--color-primary);
       margin-bottom: 0.25rem;
     }
     .day-full {
       display: block;
       font-size: 1.5rem;
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
-      color: #f0f0f0;
+      color: var(--color-text);
       letter-spacing: 0.05em;
     }
     .today-btn {
       padding: 10px 20px;
       background: transparent;
-      border: 2px solid #444;
-      color: #f0f0f0;
-      font-family: 'Impact', sans-serif;
+      border: 2px solid var(--color-border);
+      color: var(--color-text);
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 0.7rem;
       letter-spacing: 0.2em;
@@ -155,9 +161,9 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       flex-shrink: 0;
     }
     .today-btn:hover {
-      border-color: #e8001a;
-      color: #e8001a;
-      box-shadow: 3px 3px 0 #e8001a;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      box-shadow: 3px 3px 0 var(--color-primary);
     }
     .slots-wrapper {
       transform: skewX(-8deg);

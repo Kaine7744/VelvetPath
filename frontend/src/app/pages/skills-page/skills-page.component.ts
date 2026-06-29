@@ -102,69 +102,69 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
     }
     .chart-panel {
       margin-bottom: 16px;
-      background: #111111;
-      border-left: 6px solid #e8001a;
+      background: var(--color-card);
+      border-left: 6px solid var(--color-primary);
       clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-      box-shadow: 4px 4px 0 #e8001a;
+      box-shadow: var(--card-shadow);
       padding: 20px;
     }
     .skills-menu {
       overflow: hidden;
-      background: #111111;
-      border-left: 6px solid #e8001a;
+      background: var(--color-card);
+      border-left: 6px solid var(--color-primary);
       clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
     }
     .menu-header {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.6rem;
       letter-spacing: 0.2em;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       padding: 12px 20px;
-      border-bottom: 1px solid rgba(232,0,26,0.3);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
     }
     .skill-menu-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 14px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-text) 5%, transparent);
       cursor: pointer;
       transition: background 0.05s;
     }
     .skill-menu-item:hover,
     .skill-menu-item.active {
-      background: #e8001a;
+      background: var(--color-primary);
     }
     .skill-menu-item.add-item {
-      color: rgba(240,240,240,0.4);
-      font-family: 'Impact', sans-serif;
+      color: var(--color-text-dim);
+      font-family: var(--font-display);
       font-size: 0.8rem;
       letter-spacing: 0.15em;
     }
     .skill-menu-item.add-item:hover {
-      background: #e8001a;
+      background: var(--color-primary);
       color: #fff;
     }
     .skill-menu-name {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 1rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(240,240,240,0.7);
+      color: var(--color-text);
     }
     .skill-menu-item:hover .skill-menu-name,
     .skill-menu-item.active .skill-menu-name {
       color: #fff;
     }
     .skill-menu-value {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 1.2rem;
-      color: #e8001a;
+      color: var(--color-primary);
       font-weight: 900;
     }
     .skill-menu-item:hover .skill-menu-value,
     .skill-menu-item.active .skill-menu-value {
-      color: #ffd700;
+      color: var(--color-accent);
     }
     .skill-add-inline {
       padding: 16px 20px;

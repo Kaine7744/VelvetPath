@@ -582,6 +582,268 @@ a {
 }
 
 /* ============================================
+   PERSONA 4 DESIGN OVERRIDES
+   TV World / Retro-Pop Yellow
+   ============================================ */
+
+/* P4 panel — flat with yellow top border (Junes style) */
+:root[data-theme="p4"] .p5-panel-diagonal,
+:root[data-theme="p4"] .p5-panel {
+  background: #1a1a1a;
+  border: none;
+  border-top: 4px solid #f7d000;
+  clip-path: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* P4 hard-shadow — softer diffuse shadow */
+:root[data-theme="p4"] .hard-shadow,
+:root[data-theme="p4"] .hard-shadow-sm,
+:root[data-theme="p4"] .hard-shadow-lg {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* P4 nav-item — yellow hover */
+:root[data-theme="p4"] .p5-nav-item:hover,
+:root[data-theme="p4"] .p5-nav-item.active {
+  background: #f7d000;
+  border-left-color: #fff;
+  color: #000;
+}
+
+/* P4 primary button — yellow */
+:root[data-theme="p4"] .p5-btn-primary {
+  background: #f7d000;
+  color: #000;
+  clip-path: none;
+}
+:root[data-theme="p4"] .p5-btn-primary:hover {
+  background: #ffb300;
+}
+
+/* P4 secondary button — yellow border */
+:root[data-theme="p4"] .p5-btn-secondary {
+  border-color: #f7d000;
+  color: #f7d000;
+}
+:root[data-theme="p4"] .p5-btn-secondary:hover {
+  background: #f7d000;
+  color: #000;
+  border-color: #f7d000;
+}
+
+/* P4 flash overlay — yellow */
+:root[data-theme="p4"] .p5-flash-overlay {
+  background: #f7d000;
+}
+
+/* P4 drip-divider — yellow (also set per-component in day-view) */
+:root[data-theme="p4"] .drip-divider {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23f7d000'/%3E%3C/svg%3E");
+}
+
+/* P4 scrollbar — yellow thumb */
+:root[data-theme="p4"] ::-webkit-scrollbar-thumb {
+  background: #f7d000;
+}
+:root[data-theme="p4"] ::-webkit-scrollbar-track {
+  background: #0c0c0c;
+}
+:root[data-theme="p4"] ::-webkit-scrollbar {
+  width: 6px;
+}
+:root[data-theme="p4"] ::-webkit-scrollbar-thumb:hover {
+  background: #ffb300;
+}
+
+/* P4 slot-card — flat, yellow left border */
+:root[data-theme="p4"] .slot-card {
+  background: #1a1a1a;
+  border: none;
+  border-left: 4px solid #f7d000;
+  clip-path: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+:root[data-theme="p4"] .slot-card::before {
+  display: none;
+}
+:root[data-theme="p4"] .slot-card:hover {
+  box-shadow: 0 6px 20px rgba(247,208,0,0.3);
+}
+
+/* P4 dropdown panel */
+:root[data-theme="p4"] .dropdown-panel {
+  background: #1a1a1a;
+  border: none;
+  border-top: 4px solid #f7d000;
+  clip-path: none;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+/* P4 calling-card */
+:root[data-theme="p4"] .calling-card {
+  background: #1a1a1a;
+  border: none;
+  border-top: 4px solid #f7d000;
+  clip-path: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* P4-skew outer — no skew for P4 */
+:root[data-theme="p4"] .skew-outer {
+  transform: none !important;
+}
+:root[data-theme="p4"] .skew-inner {
+  transform: none !important;
+}
+:root[data-theme="p4"] .skew-wrapper {
+  transform: none !important;
+}
+:root[data-theme="p4"] .skew-content {
+  transform: none !important;
+}
+
+/* P4 side-nav */
+:root[data-theme="p4"] .side-nav {
+  border-right-color: #f7d000;
+}
+
+/* ============================================
+   PERSONA 3 DESIGN OVERRIDES
+   Dark Moon / Memento Mori / Y2K-Gothic
+   ============================================ */
+
+/* P3 panel — glass blur, no clip-path, teal left border */
+:root[data-theme="p3"] .p5-panel-diagonal,
+:root[data-theme="p3"] .p5-panel {
+  background: rgba(21,37,60,0.7);
+  border: none;
+  border-left: 4px solid #00b4c8;
+  clip-path: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,180,200,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* P3 hard-shadow — blue-tinted diffuse shadow */
+:root[data-theme="p3"] .hard-shadow,
+:root[data-theme="p3"] .hard-shadow-sm,
+:root[data-theme="p3"] .hard-shadow-lg {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(57,73,171,0.15);
+}
+
+/* P3 nav-item — teal hover */
+:root[data-theme="p3"] .p5-nav-item:hover,
+:root[data-theme="p3"] .p5-nav-item.active {
+  background: #00b4c8;
+  border-left-color: #c8e8f0;
+  color: #0a0e1a;
+}
+
+/* P3 primary button — teal */
+:root[data-theme="p3"] .p5-btn-primary {
+  background: #00b4c8;
+  color: #0a0e1a;
+  clip-path: none;
+}
+:root[data-theme="p3"] .p5-btn-primary:hover {
+  background: #0097a7;
+}
+
+/* P3 secondary button — teal border */
+:root[data-theme="p3"] .p5-btn-secondary {
+  border-color: #00b4c8;
+  color: #00b4c8;
+}
+:root[data-theme="p3"] .p5-btn-secondary:hover {
+  background: #00b4c8;
+  color: #0a0e1a;
+  border-color: #00b4c8;
+}
+
+/* P3 flash overlay — teal */
+:root[data-theme="p3"] .p5-flash-overlay {
+  background: #00b4c8;
+}
+
+/* P3 drip-divider — teal */
+:root[data-theme="p3"] .drip-divider {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%2300b4c8'/%3E%3C/svg%3E");
+}
+
+/* P3 scrollbar — teal thumb */
+:root[data-theme="p3"] ::-webkit-scrollbar-thumb {
+  background: #00b4c8;
+}
+:root[data-theme="p3"] ::-webkit-scrollbar-track {
+  background: #0d1520;
+}
+:root[data-theme="p3"] ::-webkit-scrollbar {
+  width: 6px;
+}
+:root[data-theme="p3"] ::-webkit-scrollbar-thumb:hover {
+  background: #0097a7;
+}
+
+/* P3 slot-card — glass blur, teal left border */
+:root[data-theme="p3"] .slot-card {
+  background: rgba(21,37,60,0.7);
+  border: none;
+  border-left: 4px solid #00b4c8;
+  clip-path: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,180,200,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+:root[data-theme="p3"] .slot-card::before {
+  display: none;
+}
+:root[data-theme="p3"] .slot-card:hover {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 2px 12px rgba(0,180,200,0.2);
+}
+
+/* P3 dropdown panel — glass blur */
+:root[data-theme="p3"] .dropdown-panel {
+  background: rgba(13,21,32,0.95);
+  border: none;
+  border-left: 4px solid #00b4c8;
+  clip-path: none;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0,180,200,0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* P3 calling-card — glass blur */
+:root[data-theme="p3"] .calling-card {
+  background: rgba(13,21,32,0.95);
+  border: none;
+  border-left: 4px solid #00b4c8;
+  clip-path: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(0,180,200,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* P3-skew outer — no skew for P3 */
+:root[data-theme="p3"] .skew-outer {
+  transform: none !important;
+}
+:root[data-theme="p3"] .skew-inner {
+  transform: none !important;
+}
+:root[data-theme="p3"] .skew-wrapper {
+  transform: none !important;
+}
+:root[data-theme="p3"] .skew-content {
+  transform: none !important;
+}
+
+/* P3 side-nav */
+:root[data-theme="p3"] .side-nav {
+  border-right-color: #00b4c8;
+}
+
+/* ============================================
    UTILITY CLASSES
    ============================================ */
 .display-font {

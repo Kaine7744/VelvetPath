@@ -159,12 +159,12 @@ import { Skill, Task } from '../../models';
       max-width: 600px;
     }
     .page-title {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 900;
       font-size: 3rem;
-      color: #e8001a;
+      color: var(--color-primary);
       letter-spacing: 0.15em;
-      text-shadow: 0 0 30px rgba(232,0,26,0.5);
+      text-shadow: 0 0 30px var(--color-glow);
       margin-bottom: 24px;
       transform: skewX(-8deg);
       display: inline-block;
@@ -173,11 +173,11 @@ import { Skill, Task } from '../../models';
       margin-bottom: 24px;
     }
     .section-label {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 0.65rem;
       letter-spacing: 0.25em;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       margin-bottom: 12px;
     }
     .theme-cards {
@@ -187,21 +187,21 @@ import { Skill, Task } from '../../models';
       max-width: 520px;
     }
     .theme-card {
-      background: #111;
-      border: 2px solid #2a2a2a;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
       padding: 16px;
       cursor: pointer;
       transition: border-color 0.05s, box-shadow 0.05s;
       position: relative;
     }
     .theme-card:hover {
-      border-color: var(--preview-primary, #e8001a);
-      box-shadow: 3px 3px 0 var(--preview-primary, #e8001a);
+      border-color: var(--preview-primary, var(--color-primary));
+      box-shadow: 3px 3px 0 var(--preview-primary, var(--color-primary));
     }
     .theme-card.active {
-      border-color: var(--preview-primary, #e8001a);
+      border-color: var(--preview-primary, var(--color-primary));
       border-left-width: 4px;
-      box-shadow: 4px 4px 0 var(--preview-primary, #e8001a);
+      box-shadow: 4px 4px 0 var(--preview-primary, var(--color-primary));
     }
     .theme-header {
       display: flex;
@@ -212,14 +212,14 @@ import { Skill, Task } from '../../models';
     }
     .theme-stars {
       font-size: 0.8rem;
-      color: var(--preview-primary, #e8001a);
+      color: var(--preview-primary, var(--color-primary));
     }
     .theme-name {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 0.9rem;
       letter-spacing: 0.1em;
-      color: var(--preview-text, #f0f0f0);
+      color: var(--preview-text, var(--color-text));
     }
     .mini-preview {
       display: flex;
@@ -227,8 +227,8 @@ import { Skill, Task } from '../../models';
     }
     .mini-card {
       width: 130px;
-      background: var(--preview-card, #111);
-      border: 2px solid var(--preview-border, #2a2a2a);
+      background: var(--preview-card, var(--color-card));
+      border: 2px solid var(--preview-border, var(--color-border));
       padding: 8px 12px;
       position: relative;
       overflow: hidden;
@@ -238,26 +238,26 @@ import { Skill, Task } from '../../models';
       position: absolute;
       left: 0; top: 0; bottom: 0;
       width: 3px;
-      background: var(--mini-accent, #e8001a);
+      background: var(--mini-accent, var(--color-primary));
     }
     .mini-label {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.45rem;
       letter-spacing: 0.15em;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       margin-bottom: 4px;
     }
     .mini-content {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-weight: 800;
       font-size: 0.9rem;
-      color: var(--preview-text, #f0f0f0);
+      color: var(--preview-text, var(--color-text));
       margin-bottom: 4px;
     }
     .mini-stat {
       font-size: 0.45rem;
       letter-spacing: 0.1em;
-      color: var(--mini-accent, #e8001a);
+      color: var(--mini-accent, var(--color-primary));
       font-weight: 700;
     }
     .active-badge {
@@ -265,9 +265,9 @@ import { Skill, Task } from '../../models';
       bottom: -1px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--preview-primary, #e8001a);
+      background: var(--preview-primary, var(--color-primary));
       color: #fff;
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.5rem;
       font-weight: 700;
       letter-spacing: 0.15em;
@@ -275,50 +275,50 @@ import { Skill, Task } from '../../models';
       white-space: nowrap;
     }
 
-    /* Tasks P5 menu */
+    /* Tasks menu */
     .tasks-menu {
       overflow: hidden;
-      background: #111;
-      border-left: 6px solid #e8001a;
+      background: var(--color-card);
+      border-left: 6px solid var(--color-primary);
       clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
     }
     .menu-header {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.6rem;
       letter-spacing: 0.2em;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       padding: 10px 20px;
-      border-bottom: 1px solid rgba(232,0,26,0.3);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
     }
     .task-menu-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 12px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-text) 5%, transparent);
       cursor: pointer;
       transition: background 0.05s;
     }
     .task-menu-item:hover,
     .task-menu-item.editing {
-      background: #e8001a;
+      background: var(--color-primary);
     }
     .task-menu-item.add-item {
-      color: rgba(240,240,240,0.4);
-      font-family: 'Impact', sans-serif;
+      color: var(--color-text-dim);
+      font-family: var(--font-display);
       font-size: 0.8rem;
       letter-spacing: 0.15em;
     }
     .task-menu-item.add-item:hover {
-      background: #e8001a;
+      background: var(--color-primary);
       color: #fff;
     }
     .task-menu-name {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.95rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(240,240,240,0.7);
+      color: var(--color-text);
     }
     .task-menu-item:hover .task-menu-name,
     .task-menu-item.editing .task-menu-name {
@@ -330,25 +330,25 @@ import { Skill, Task } from '../../models';
       gap: 10px;
     }
     .task-skill-badge {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.55rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: #fff;
-      background: #e8001a;
+      background: var(--color-primary);
       padding: 3px 8px;
     }
     .task-menu-gain {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.9rem;
-      color: #76ff03;
+      color: var(--color-success);
       font-weight: 900;
     }
     .task-edit-inline {
       padding: 14px 20px;
       background: rgba(0,0,0,0.3);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-text) 5%, transparent);
     }
     .task-name-input {
       margin-bottom: 8px;

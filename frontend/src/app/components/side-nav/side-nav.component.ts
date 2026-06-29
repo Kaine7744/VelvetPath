@@ -51,8 +51,8 @@ import { ThemeService } from '../../services/theme.service';
       top: 0;
       bottom: 0;
       width: 60px;
-      background: #0a0a0a;
-      border-right: 2px solid #e8001a;
+      background: var(--color-bg);
+      border-right: 2px solid var(--color-primary);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -64,12 +64,11 @@ import { ThemeService } from '../../services/theme.service';
       padding: 4px 0;
     }
     .logo {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 1.1rem;
-      color: #e8001a;
+      color: var(--color-primary);
       letter-spacing: 0.15em;
-      text-shadow: 0 0 20px rgba(232,0,26,0.6);
-      transform: skewX(-8deg);
+      text-shadow: 0 0 20px var(--color-glow);
     }
     .nav-items {
       display: flex;
@@ -87,9 +86,9 @@ import { ThemeService } from '../../services/theme.service';
       justify-content: center;
       gap: 4px;
       padding: 10px 0;
-      color: rgba(240,240,240,0.4);
+      color: var(--color-text-dim);
       border-left: 3px solid transparent;
-      border-bottom: 1px solid rgba(232,0,26,0.1);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
       transition: background 0.05s, border-color 0.05s, color 0.05s;
       cursor: pointer;
       text-decoration: none;
@@ -99,27 +98,26 @@ import { ThemeService } from '../../services/theme.service';
       height: 18px;
     }
     .nav-label {
-      font-family: 'Impact', sans-serif;
+      font-family: var(--font-display);
       font-size: 0.55rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
     }
     .nav-item:hover {
-      background: rgba(232,0,26,0.15);
-      color: rgba(240,240,240,0.8);
-      border-left-color: rgba(232,0,26,0.4);
+      background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+      color: var(--color-text);
+      border-left-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
     }
     .nav-item.active {
-      background: #e8001a;
-      border-left: 4px solid #ffd700;
-      border-left-color: #ffd700;
+      background: var(--color-primary);
+      border-left: 4px solid var(--color-accent);
       color: #fff;
     }
     .nav-item.active svg {
-      filter: drop-shadow(0 0 6px rgba(255,215,0,0.8));
+      filter: drop-shadow(0 0 6px var(--color-glow));
     }
     .nav-item.active .nav-label {
-      color: #ffd700;
+      color: var(--color-accent);
     }
     .nav-bottom {
       margin-top: auto;
@@ -128,29 +126,29 @@ import { ThemeService } from '../../services/theme.service';
     .theme-cycle {
       width: 36px;
       height: 36px;
-      background: #111;
-      border: 2px solid #e8001a;
+      background: var(--color-surface);
+      border: 2px solid var(--color-primary);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.05s, box-shadow 0.05s;
-      box-shadow: 2px 2px 0 #e8001a;
+      box-shadow: 2px 2px 0 var(--color-primary);
     }
     .theme-cycle:hover {
-      background: #e8001a;
-      box-shadow: 3px 3px 0 #ffd700;
+      background: var(--color-primary);
+      box-shadow: 3px 3px 0 var(--color-accent);
     }
     .theme-dot {
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: #e8001a;
-      box-shadow: 0 0 8px rgba(232,0,26,0.6);
+      background: var(--color-primary);
+      box-shadow: 0 0 8px var(--color-glow);
     }
     .theme-cycle:hover .theme-dot {
-      background: #ffd700;
-      box-shadow: 0 0 10px rgba(255,215,0,0.8);
+      background: var(--color-accent);
+      box-shadow: 0 0 10px var(--color-glow);
     }
   `]
 })
