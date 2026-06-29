@@ -12,6 +12,12 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
   template: `
     <div class="chart-wrapper">
       <canvas #chartCanvas></canvas>
+      @if (maxTier() > 1) {
+        <div class="tier-badge">
+          <span class="tier-star">★</span>
+          <span class="tier-num">×{{ maxTier() }}</span>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -24,6 +30,34 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
     canvas {
       width: 100% !important;
       aspect-ratio: 1 !important;
+    }
+    .tier-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--color-bg);
+      border: 2px solid var(--color-primary);
+      border-radius: 50%;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--color-glow);
+      pointer-events: none;
+    }
+    .tier-star {
+      font-size: 1.2rem;
+      color: var(--color-primary);
+    }
+    .tier-num {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: var(--color-text);
+      line-height: 1;
     }
   `]
 })
@@ -56,6 +90,13 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
+  maxTier(): number {
+    const values = this.skills().map(s => s.currentValue);
+    if (!values.length) return 1;
+    const max = Math.max(...values);
+    return Math.max(1, Math.floor(max / 100) + 1);
+  }
+
   private getThemeVar(name: string): string {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || 'sans-serif';
   }
@@ -65,7 +106,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private getSkillValue(skill: Skill): number {
-    return skill.currentValue % 100;
+    return Math.min(100, skill.currentValue % 100 || (skill.currentValue > 0 ? 100 : 0));
   }
 
   private createChart() {
@@ -149,12 +190,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private getOrderedLabels(): string[] {
-    const superscripts: Record<number, string> = { 1: '²', 2: '³', 3: '⁴', 4: '⁵', 5: '⁶' };
-    return this.skills().map(s => {
-      const tier = Math.floor(s.currentValue / 100) + 1;
-      const sup = superscripts[tier] ?? String(tier);
-      return s.name.toUpperCase() + sup;
-    });
+    return this.skills().map(s => s.name.toUpperCase());
   }
 
   private getOrderedData(): number[] {
