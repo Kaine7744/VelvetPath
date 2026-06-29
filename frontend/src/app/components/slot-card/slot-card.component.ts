@@ -37,6 +37,12 @@ import { ThemeService } from '../../services/theme.service';
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </button>
+            <button class="remove-btn" (click)="onRemove($event)" title="Remove task">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
           }
           @if (slot().completed) {
             <div class="done-badge" [class.p5-confirm-pulse]="themeService.getCurrentConfig().id === 'p5'">
@@ -44,6 +50,12 @@ import { ThemeService } from '../../services/theme.service';
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
+            <button class="unfinish-btn" (click)="onUnfinish($event)" title="Undo completion">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+              </svg>
+            </button>
           }
         </div>
 
@@ -78,7 +90,7 @@ import { ThemeService } from '../../services/theme.service';
     }
     .skew-outer {
       transform: skewX(-8deg);
-      overflow: visible;
+      overflow: hidden;
     }
     .slot-card {
       background: var(--color-card);
@@ -97,7 +109,7 @@ import { ThemeService } from '../../services/theme.service';
       content: '';
       position: absolute;
       left: 0;
-      top: 0;
+      top: 10px;
       bottom: 0;
       width: 6px;
       background: var(--color-primary);
@@ -188,6 +200,30 @@ import { ThemeService } from '../../services/theme.service';
       color: var(--color-success);
       box-shadow: 0 0 20px color-mix(in srgb, var(--color-success) 40%, transparent);
     }
+    .remove-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+      background: transparent;
+      color: color-mix(in srgb, var(--color-danger) 70%, transparent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .remove-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    .remove-btn:hover {
+      background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+      box-shadow: 0 0 15px color-mix(in srgb, var(--color-danger) 40%, transparent);
+    }
     .done-badge {
       width: 44px;
       height: 44px;
@@ -207,6 +243,30 @@ import { ThemeService } from '../../services/theme.service';
     .done-badge svg {
       width: 18px;
       height: 18px;
+    }
+    .unfinish-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+      background: transparent;
+      color: color-mix(in srgb, var(--color-warning) 70%, transparent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .unfinish-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    .unfinish-btn:hover {
+      background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+      border-color: var(--color-warning);
+      color: var(--color-warning);
+      box-shadow: 0 0 15px color-mix(in srgb, var(--color-warning) 40%, transparent);
     }
     .slot-meta {
       margin-top: 0.75rem;
@@ -254,6 +314,7 @@ export class SlotCardComponent {
   tasks = input.required<Task[]>();
   taskSelected = output<string | null>();
   completed = output<{ slot: string; statGain: number; statName: string }>();
+  uncompleted = output<{ slot: string; statGain: number; statName: string }>();
 
   themeService = inject(ThemeService);
 
@@ -286,6 +347,19 @@ export class SlotCardComponent {
       this.growthAnimation.set(true);
       this.completed.emit({ slot: this.slotName(), statGain: slot.task.statGain, statName: slot.task.statName || '' });
       setTimeout(() => this.growthAnimation.set(false), 2000);
+    }
+  }
+
+  onRemove(e: MouseEvent) {
+    e.stopPropagation();
+    this.taskSelected.emit(null);
+  }
+
+  onUnfinish(e: MouseEvent) {
+    e.stopPropagation();
+    const slot = this.slot();
+    if (slot.status === 'set' && slot.task && slot.completed) {
+      this.uncompleted.emit({ slot: this.slotName(), statGain: slot.task.statGain, statName: slot.task.statName || '' });
     }
   }
 }

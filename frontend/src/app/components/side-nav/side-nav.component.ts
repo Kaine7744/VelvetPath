@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-side-nav',
@@ -21,6 +20,24 @@ import { ThemeService } from '../../services/theme.service';
           <span class="nav-label">DAY</span>
         </a>
 
+        <a class="nav-item" routerLink="/tasks" routerLinkActive="active" title="Tasks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span class="nav-label">TASKS</span>
+        </a>
+
+        <a class="nav-item" routerLink="/templates" routerLinkActive="active" title="Recurring Tasks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span class="nav-label">RECURRING</span>
+        </a>
+
         <a class="nav-item" routerLink="/skills" routerLinkActive="active" title="Skills">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -35,12 +52,6 @@ import { ThemeService } from '../../services/theme.service';
           </svg>
           <span class="nav-label">CONFIG</span>
         </a>
-      </div>
-
-      <div class="nav-bottom">
-        <button class="theme-cycle" (click)="cycleTheme()" [title]="'Theme: ' + themeService.currentTheme().toUpperCase()">
-          <span class="theme-dot"></span>
-        </button>
       </div>
     </nav>
   `,
@@ -119,43 +130,7 @@ import { ThemeService } from '../../services/theme.service';
     .nav-item.active .nav-label {
       color: var(--color-accent);
     }
-    .nav-bottom {
-      margin-top: auto;
-      padding-top: 1rem;
-    }
-    .theme-cycle {
-      width: 36px;
-      height: 36px;
-      background: var(--color-surface);
-      border: 2px solid var(--color-primary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.05s, box-shadow 0.05s;
-      box-shadow: 2px 2px 0 var(--color-primary);
-    }
-    .theme-cycle:hover {
-      background: var(--color-primary);
-      box-shadow: 3px 3px 0 var(--color-accent);
-    }
-    .theme-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--color-primary);
-      box-shadow: 0 0 8px var(--color-glow);
-    }
-    .theme-cycle:hover .theme-dot {
-      background: var(--color-accent);
-      box-shadow: 0 0 10px var(--color-glow);
-    }
   `]
 })
 export class SideNavComponent {
-  themeService = inject(ThemeService);
-
-  cycleTheme() {
-    this.themeService.cycleTheme();
-  }
 }

@@ -25,7 +25,7 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
 
       <!-- Skills list — P5 vertical menu -->
       <div class="skills-menu p5-panel">
-        <div class="menu-header">— CONFIDANT LIST —</div>
+        <div class="menu-header">— SKILLS —</div>
 
         @for (skill of skills(); track skill.id) {
           <div class="skill-menu-item"
@@ -89,6 +89,10 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
             </div>
           </div>
         </div>
+      }
+
+      @if (createdFeedback()) {
+        <div class="feedback-flash">+ SKILL ADDED</div>
       }
     </div>
   `,
@@ -164,7 +168,7 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
     }
     .skill-menu-item:hover .skill-menu-value,
     .skill-menu-item.active .skill-menu-value {
-      color: var(--color-accent);
+      color: #fff;
     }
     .skill-add-inline {
       padding: 16px 20px;
@@ -200,6 +204,26 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
     .p5-btn-danger:hover {
       background: rgba(229,57,53,0.2);
     }
+    .feedback-flash {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--color-success);
+      color: #000;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      padding: 10px 20px;
+      z-index: 100;
+      animation: feedback-pop 2s ease-out forwards;
+    }
+    @keyframes feedback-pop {
+      0% { opacity: 0; transform: translateY(10px); }
+      15% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
   `]
 })
 export class SkillsPageComponent implements OnInit {
@@ -215,6 +239,7 @@ export class SkillsPageComponent implements OnInit {
   addingNew = signal(false);
   newSkillName = signal('');
   newSkillDesc = signal('');
+  createdFeedback = signal(false);
 
   ngOnInit() {
     this.loadSkills();
@@ -274,6 +299,8 @@ export class SkillsPageComponent implements OnInit {
         this.newSkillName.set('');
         this.newSkillDesc.set('');
         this.addingNew.set(false);
+        this.createdFeedback.set(true);
+        setTimeout(() => this.createdFeedback.set(false), 2000);
       },
       error: err => console.error('Failed to create skill:', err)
     });

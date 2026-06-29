@@ -153,10 +153,17 @@ const dbModule = {
   async getTemplatesForDay(dayOfWeek) {
     await getDb();
     const templates = [];
-    const stmt = db.prepare('SELECT * FROM templates WHERE enabled = 1');
+    const stmt = db.prepare(`
+      SELECT t.*, tk.name as taskName
+      FROM templates t
+      JOIN tasks tk ON t.taskId = tk.id
+      WHERE t.enabled = 1
+    `);
     while (stmt.step()) {
       const t = stmt.getAsObject();
-      if (t.daysOfWeek.split(',').includes(String(dayOfWeek))) {
+      const days = t.daysOfWeek ? t.daysOfWeek.split(',').map(Number) : [];
+      if (days.includes(dayOfWeek)) {
+        t.daysOfWeek = days;
         templates.push(t);
       }
     }
@@ -369,7 +376,9 @@ const dbModule = {
       JOIN tasks tk ON t.taskId = tk.id
     `);
     while (stmt.step()) {
-      templates.push(stmt.getAsObject());
+      const row = stmt.getAsObject();
+      row.daysOfWeek = row.daysOfWeek ? row.daysOfWeek.split(',').map(Number) : [];
+      templates.push(row);
     }
     stmt.free();
     return templates;
@@ -458,6 +467,11 @@ const dbModule = {
 
     // Re-seed work template (Mon-Fri Morning)
     db.run(`INSERT OR IGNORE INTO templates (id, taskId, slot, daysOfWeek, enabled) VALUES (?, 'work', 'morning', '1,2,3,4,5', 1)`, ['work-default']);
+
+    // Re-seed default settings
+    db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ('theme', 'p5')`);
+    db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ('morningEnabled', 'true')`);
+    db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ('eveningEnabled', 'false')`);
 
     saveDb();
   },

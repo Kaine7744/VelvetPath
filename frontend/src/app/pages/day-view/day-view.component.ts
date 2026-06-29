@@ -1,7 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, effect } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
+import { TemplateService, RecurringTask } from '../../services/template.service';
+import { SettingsService } from '../../services/settings.service';
 import { Day, Task, SlotsPayload } from '../../models';
 import { SlotCardComponent } from '../../components/slot-card/slot-card.component';
 
@@ -25,8 +27,8 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
           </svg>
         </button>
         <div class="date-display">
-          <span class="day-name">{{ currentDate() | date:'EEEE' }}</span>
-          <span class="day-full">{{ currentDate() | date:'MMMM d, y' }}</span>
+          <span class="day-name">{{ centerDate() | date:'EEEE' }}</span>
+          <span class="day-full">{{ centerDate() | date:'MMMM d, y' }}</span>
         </div>
         <button class="nav-btn" (click)="nextDay()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -36,30 +38,62 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <div class="slots-wrapper skew-outer">
-        <div class="slots-inner">
-          <app-slot-card
-            [slot]="dayData()?.slots?.morning || emptySlot()"
-            slotName="Morning"
-            [tasks]="tasks()"
-            (taskSelected)="onSlotTaskSelected('morning', $event)"
-            (completed)="onSlotCompleted('morning', $event)"
-          />
-          <app-slot-card
-            [slot]="dayData()?.slots?.afternoon || emptySlot()"
-            slotName="Afternoon"
-            [tasks]="tasks()"
-            (taskSelected)="onSlotTaskSelected('afternoon', $event)"
-            (completed)="onSlotCompleted('afternoon', $event)"
-          />
-          <app-slot-card
-            [slot]="dayData()?.slots?.evening || emptySlot()"
-            slotName="Evening"
-            [tasks]="tasks()"
-            (taskSelected)="onSlotTaskSelected('evening', $event)"
-            (completed)="onSlotCompleted('evening', $event)"
-          />
+      <!-- Recurring Tasks for center date -->
+      @if (recurringForCenter().length > 0) {
+        <div class="recurring-section">
+          <div class="recurring-label">— RECURRING TODAY —</div>
+          <div class="recurring-pills">
+            @for (r of recurringForCenter(); track r.taskId + r.slot) {
+              <div class="recurring-pill">
+                <span class="recurring-pill-slot">{{ r.slot.toUpperCase() }}</span>
+                <span class="recurring-pill-name">{{ r.taskName || '—' }}</span>
+              </div>
+            }
+          </div>
         </div>
+      }
+
+      <div class="days-grid">
+        @for (day of daysData(); track day.date) {
+          <div class="day-column">
+            <div class="day-header" [class.today]="isToday(day.date)">
+              <span class="day-label">{{ day.date | date:'EEE' }}</span>
+              <span class="day-num">{{ day.date | date:'d' }}</span>
+            </div>
+            <div class="slots-wrapper skew-outer">
+              <div class="slots-inner">
+                @if (morningEnabled()) {
+                  <app-slot-card
+                    [slot]="day.slots.morning"
+                    slotName="Morning"
+                    [tasks]="tasks()"
+                    (taskSelected)="onSlotTaskSelected(day.date, 'morning', $event)"
+                    (completed)="onSlotCompleted(day.date, 'morning', $event)"
+                    (uncompleted)="onSlotUncompleted(day.date, 'morning', $event)"
+                  />
+                }
+                <app-slot-card
+                  [slot]="day.slots.afternoon"
+                  slotName="Afternoon"
+                  [tasks]="tasks()"
+                  (taskSelected)="onSlotTaskSelected(day.date, 'afternoon', $event)"
+                  (completed)="onSlotCompleted(day.date, 'afternoon', $event)"
+                  (uncompleted)="onSlotUncompleted(day.date, 'afternoon', $event)"
+                />
+                @if (eveningEnabled()) {
+                  <app-slot-card
+                    [slot]="day.slots.evening"
+                    slotName="Evening"
+                    [tasks]="tasks()"
+                    (taskSelected)="onSlotTaskSelected(day.date, 'evening', $event)"
+                    (completed)="onSlotCompleted(day.date, 'evening', $event)"
+                    (uncompleted)="onSlotUncompleted(day.date, 'evening', $event)"
+                  />
+                }
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </div>
   `,
@@ -84,18 +118,6 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       transform: skewX(8deg);
       display: inline-block;
       margin: 0;
-    }
-    .drip-divider {
-      height: 16px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23e8001a'/%3E%3C/svg%3E");
-      background-repeat: repeat-x;
-      background-size: 50px 16px;
-    }
-    :root[data-theme="p4"] .drip-divider {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23f7d000'/%3E%3C/svg%3E");
-    }
-    :root[data-theme="p3"] .drip-divider {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%2300b4c8'/%3E%3C/svg%3E");
     }
     .day-nav {
       display: flex;
@@ -165,75 +187,192 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       color: var(--color-primary);
       box-shadow: 3px 3px 0 var(--color-primary);
     }
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .day-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .day-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding: 0 0.5rem;
+    }
+    .day-header.today .day-label,
+    .day-header.today .day-num {
+      color: var(--color-primary);
+    }
+    .day-label {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--color-text-dim);
+    }
+    .day-num {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--color-text);
+    }
     .slots-wrapper {
       transform: skewX(-8deg);
+      overflow: visible;
     }
     .slots-inner {
       transform: skewX(8deg);
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.75rem;
+    }
+
+    /* Recurring section */
+    .recurring-section {
+      margin-bottom: 1.5rem;
+      padding: 12px 16px;
+      border: 1px dashed color-mix(in srgb, var(--color-primary) 40%, transparent);
+      background: color-mix(in srgb, var(--color-card) 60%, transparent);
+    }
+    .recurring-label {
+      font-family: var(--font-display);
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      color: var(--color-text-dim);
+      margin-bottom: 10px;
+    }
+    .recurring-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .recurring-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    }
+    .recurring-pill-slot {
+      font-family: var(--font-display);
+      font-size: 0.5rem;
+      letter-spacing: 0.1em;
+      color: var(--color-primary);
+    }
+    .recurring-pill-name {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text);
     }
   `]
 })
 export class DayViewComponent implements OnInit {
   private dayService = inject(DayService);
   private taskService = inject(TaskService);
+  private templateService = inject(TemplateService);
+  private settingsService = inject(SettingsService);
 
-  currentDate = signal(new Date());
-  dayData = signal<Day | null>(null);
+  centerDate = signal(new Date());
+  daysData = signal<Day[]>([]);
   tasks = signal<Task[]>([]);
+  recurringForCenter = signal<RecurringTask[]>([]);
+  morningEnabled = signal(true);
+  eveningEnabled = signal(true);
 
-  emptySlot = () => ({ status: 'free' as const, taskId: null, completed: false, task: null });
+  private readonly WINDOW_SIZE = 3;
+
+  constructor() {
+    // Reload recurring tasks whenever the center date changes
+    effect(() => {
+      const date = this.centerDate();
+      const dateStr = this.toDateString(date);
+      this.templateService.getTemplatesForDate(dateStr).subscribe({
+        next: r => this.recurringForCenter.set(r),
+        error: err => console.error('Failed to load recurring tasks:', err)
+      });
+    });
+  }
 
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
-    this.loadDay();
+    this.settingsService.getSettings().subscribe({
+      next: settings => {
+        this.morningEnabled.set(settings['morningEnabled'] !== 'false');
+        this.eveningEnabled.set(settings['eveningEnabled'] !== 'false');
+      }
+    });
+    this.loadDays();
   }
 
-  private loadDay() {
-    const dateStr = this.toDateString(this.currentDate());
-    this.dayService.getDay(dateStr).subscribe(day => this.dayData.set(day));
+  private loadDays() {
+    const center = this.centerDate();
+    const start = this.offsetDate(center, -1);
+    const end = this.offsetDate(center, 1);
+    this.dayService.getDays(this.toDateString(start), this.toDateString(end))
+      .subscribe(days => this.daysData.set(days));
+  }
+
+  private offsetDate(date: Date, days: number): Date {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
   }
 
   previousDay() {
-    const d = new Date(this.currentDate());
-    d.setDate(d.getDate() - 1);
-    this.currentDate.set(d);
-    this.loadDay();
+    this.centerDate.set(this.offsetDate(this.centerDate(), -1));
+    this.loadDays();
   }
 
   nextDay() {
-    const d = new Date(this.currentDate());
-    d.setDate(d.getDate() + 1);
-    this.currentDate.set(d);
-    this.loadDay();
+    this.centerDate.set(this.offsetDate(this.centerDate(), 1));
+    this.loadDays();
   }
 
   goToToday() {
-    this.currentDate.set(new Date());
-    this.loadDay();
+    this.centerDate.set(new Date());
+    this.loadDays();
   }
 
-  onSlotTaskSelected(slotName: 'morning' | 'afternoon' | 'evening', taskId: string | null) {
-    const dateStr = this.toDateString(this.currentDate());
+  isToday(dateStr: string): boolean {
+    return dateStr === this.toDateString(new Date());
+  }
+
+  onSlotTaskSelected(date: string, slotName: 'morning' | 'afternoon' | 'evening', taskId: string | null) {
     const payload: SlotsPayload = {
       [slotName]: taskId === null
         ? { status: 'free' }
         : { status: 'set', taskId }
     };
-    this.dayService.updateDay(dateStr, payload).subscribe(day => this.dayData.set(day));
+    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
   }
 
-  onSlotCompleted(slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
-    const dateStr = this.toDateString(this.currentDate());
+  onSlotCompleted(date: string, slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
     const payload: SlotsPayload = {
       [slotName]: { completed: true }
     };
-    this.dayService.updateDay(dateStr, payload).subscribe(day => this.dayData.set(day));
+    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
+  }
+
+  onSlotUncompleted(date: string, slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
+    const payload: SlotsPayload = {
+      [slotName]: { completed: false }
+    };
+    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
   }
 
   private toDateString(date: Date): string {
-    return date.toISOString().split('T')[0];
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 }

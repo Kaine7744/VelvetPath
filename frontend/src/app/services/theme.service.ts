@@ -1,4 +1,6 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 export type ThemeId = 'p3' | 'p4' | 'p5';
 
@@ -101,9 +103,27 @@ const THEME_ORDER: ThemeId[] = ['p5', 'p4', 'p3'];
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+  private http = inject(HttpClient);
+
   currentTheme = signal<ThemeId>(this.loadTheme());
 
   constructor() {
+    // Sync theme from backend on init (localStorage as fast fallback)
+    this.http.get<Record<string, string>>('/api/settings').subscribe({
+      next: settings => {
+        const backendTheme = settings['theme'] as ThemeId | undefined;
+        if (backendTheme && backendTheme in THEMES) {
+          this.currentTheme.set(backendTheme);
+          localStorage.setItem('velvetpath-theme', backendTheme);
+        }
+        this.applyTheme(this.currentTheme());
+      },
+      error: () => {
+        // Backend unavailable — fall back to localStorage
+        this.applyTheme(this.currentTheme());
+      }
+    });
+
     effect(() => {
       this.applyTheme(this.currentTheme());
     });
@@ -134,6 +154,11 @@ export class ThemeService {
 
   setTheme(themeId: ThemeId) {
     this.currentTheme.set(themeId);
+    localStorage.setItem('velvetpath-theme', themeId);
+    // Persist to backend
+    this.http.put('/api/settings', { key: 'theme', value: themeId }).subscribe({
+      error: err => console.error('Failed to persist theme to backend:', err)
+    });
   }
 
   getConfig(id: ThemeId): ThemeConfig {

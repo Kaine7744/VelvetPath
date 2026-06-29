@@ -37,6 +37,7 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
     .stats-page {
       min-height: 100vh;
       padding: 2rem;
+      position: relative;
     }
     .page-title {
       font-family: var(--font-display);
@@ -169,7 +170,8 @@ export class StatsPageComponent implements OnInit {
   }
 
   getInnerValue(value: number): number {
+    if (value === 0) return 0;
     const inner = value % 100;
-    return inner === 0 && value > 0 ? 100 : inner;
+    return inner === 0 ? 100 : inner;
   }
 }

@@ -22,12 +22,15 @@
   --color-card: var(--p5-panel);
   --color-border: #2a2a2a;
   --color-text: var(--p5-white);
-  --color-text-dim: var(--p5-grey);
+  --color-text-dim: #b0b0b0;
   --color-success: #76ff03;
+  --color-danger: #ff1744;
+  --color-warning: #ff9100;
 
   /* Typography */
   --font-display: 'Impact', 'Bebas Neue', sans-serif;
   --font-body: 'Noto Sans', sans-serif;
+  --font-display-scale: 1.2;
   --text-angle: -8deg;
   --text-transform: uppercase;
 
@@ -67,12 +70,15 @@
   --color-card: #202020;
   --color-border: #2e2e2e;
   --color-text: #fffde7;
-  --color-text-dim: rgba(255,253,231,0.45);
+  --color-text-dim: rgba(255,253,231,0.82);
   --color-success: #76ff03;
+  --color-danger: #ff1744;
+  --color-warning: #ff9100;
 
   /* Typography */
   --font-display: 'Fredoka One', cursive;
   --font-body: 'Noto Sans', sans-serif;
+  --font-display-scale: 0.9;
   --text-angle: 0deg;
   --text-transform: none;
 
@@ -112,12 +118,15 @@
   --color-card: rgba(30,50,80,0.55);
   --color-border: rgba(100,150,200,0.18);
   --color-text: #e0e8f0;
-  --color-text-dim: rgba(224,232,240,0.45);
+  --color-text-dim: rgba(224,232,240,0.82);
   --color-success: #4dd0e1;
+  --color-danger: #ef5350;
+  --color-warning: #ffa726;
 
   /* Typography */
   --font-display: 'Cinzel', serif;
   --font-body: 'Noto Sans', sans-serif;
+  --font-display-scale: 1.0;
   --text-angle: 0deg;
   --text-transform: uppercase;
 
@@ -275,7 +284,7 @@ a {
 @keyframes bounce-hover {
   0% { transform: var(--card-transform) scale(1); }
   50% { transform: var(--card-transform) scale(1.04); }
-  100% { transform: var(--card-transform) scale(1.02); }
+  100% { transform: var(--card-transform) scale(1); }
 }
 
 /* ============================================
@@ -423,8 +432,8 @@ a {
   box-sizing: border-box;
 }
 .p5-input::placeholder {
-  color: var(--color-text-dim);
-  opacity: 0.6;
+  color: var(--color-text);
+  opacity: 0.5;
 }
 
 /* P5 buttons */
@@ -585,7 +594,7 @@ a {
 /* --- P5 Drip Divider (SVG) --- */
 .drip-divider {
   height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23e8001a'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%2016%22%3E%3Cpath%20d%3D%22M0%200%20L20%200%20L25%2012%20L30%204%20L35%2014%20L40%206%20L45%2010%20L50%200%20L200%200%22%20fill%3D%22%23e8001a%22/%3E%3C/svg%3E");
   background-repeat: repeat-x;
   background-size: 50px 16px;
   margin: 1rem 0;
@@ -663,7 +672,7 @@ a {
 
 /* P4 drip-divider — yellow (also set per-component in day-view) */
 :root[data-theme="p4"] .drip-divider {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%23f7d000'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%2016%22%3E%3Cpath%20d%3D%22M0%200%20L20%200%20L25%2012%20L30%204%20L35%2014%20L40%206%20L45%2010%20L50%200%20L200%200%22%20fill%3D%22%23f7d000%22/%3E%3C/svg%3E");
 }
 
 /* P4 scrollbar — yellow thumb */
@@ -725,6 +734,15 @@ a {
 }
 :root[data-theme="p4"] .skew-content {
   transform: none !important;
+}
+:root[data-theme="p4"] .slots-wrapper {
+  transform: none !important;
+}
+
+/* P4 select-bar hover contrast */
+:root[data-theme="p4"] .p5-select-bar:hover,
+:root[data-theme="p4"] .p5-select-bar.active {
+  color: #000;
 }
 
 /* P4 side-nav */
@@ -792,7 +810,7 @@ a {
 
 /* P3 drip-divider — teal */
 :root[data-theme="p3"] .drip-divider {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16'%3E%3Cpath d='M0 0 L20 0 L25 12 L30 4 L35 14 L40 6 L45 10 L50 0 L200 0' fill='%2300b4c8'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20200%2016%22%3E%3Cpath%20d%3D%22M0%200%20L20%200%20L25%2012%20L30%204%20L35%2014%20L40%206%20L45%2010%20L50%200%20L200%200%22%20fill%3D%22%2300b4c8%22/%3E%3C/svg%3E");
 }
 
 /* P3 scrollbar — teal thumb */
@@ -861,10 +879,18 @@ a {
 :root[data-theme="p3"] .skew-content {
   transform: none !important;
 }
+:root[data-theme="p3"] .slots-wrapper {
+  transform: none !important;
+}
 
 /* P3 side-nav */
 :root[data-theme="p3"] .side-nav {
   border-right-color: #00b4c8;
+}
+
+/* P3 inputs — opaque background over translucent surface */
+:root[data-theme="p3"] .p5-input {
+  background: rgba(13, 21, 32, 0.95);
 }
 
 /* ============================================

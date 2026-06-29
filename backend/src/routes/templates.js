@@ -35,6 +35,23 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// GET /api/templates/for-day/:date — which recurring tasks apply to a given date
+router.get('/for-day/:date', async (req, res) => {
+  try {
+    const { date } = req.params;
+    const dayOfWeek = new Date(date).getDay();
+    const templates = await db.getTemplatesForDay(dayOfWeek);
+    const result = templates.map(t => ({
+      slot: t.slot,
+      taskId: t.taskId,
+      taskName: t.taskName || null
+    }));
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // DELETE /api/templates/:id
 router.delete('/:id', async (req, res) => {
   try {

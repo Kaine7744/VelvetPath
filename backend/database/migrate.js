@@ -122,6 +122,7 @@ async function migrate() {
   // Seed default settings
   const defaultSettings = [
     { key: 'theme', value: 'p5' },
+    { key: 'morningEnabled', value: 'true' },
     { key: 'eveningEnabled', value: 'false' },
   ];
 

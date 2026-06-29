@@ -2,6 +2,37 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 
+// GET /api/days/range/:start/:end
+router.get('/range/:start/:end', async (req, res) => {
+  try {
+    const { start, end } = req.params;
+    const days = await db.getDaysRange(start, end);
+    const tasks = await db.getAllTasks();
+    const tasksMap = Object.fromEntries(tasks.map(t => [t.id, t]));
+
+    const enrichSlot = (slot) => {
+      if (slot.status === 'set' && slot.taskId) {
+        const task = tasksMap[slot.taskId];
+        return { ...slot, task: task ? { id: task.id, name: task.name, statName: task.statName, statGain: task.statGain } : null };
+      }
+      return slot;
+    };
+
+    const enriched = days.map(day => ({
+      date: day.date,
+      slots: {
+        morning: enrichSlot(day.morning),
+        afternoon: enrichSlot(day.afternoon),
+        evening: enrichSlot(day.evening),
+      }
+    }));
+
+    res.json(enriched);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/days/:date
 router.get('/:date', async (req, res) => {
   try {

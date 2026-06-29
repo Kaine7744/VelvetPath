@@ -25,6 +25,8 @@ export interface StatGrowth {
   statId: string;
   statName: string;
   gain: number;
+  oldTier?: number;
+  newTier?: number;
 }
 
 export interface Task {
@@ -44,6 +46,9 @@ export interface Skill {
   currentValue: number;
 }
 
+// Stat is an alias for Skill (the backend calls them skills, the frontend calls them stats)
+export type Stat = Skill;
+
 export interface Template {
   id: string;
   taskId: string;
@@ -57,4 +62,18 @@ export interface SlotsPayload {
   morning?: Partial<Slot>;
   afternoon?: Partial<Slot>;
   evening?: Partial<Slot>;
+}
+
+export interface AppSettings {
+  theme: string;
+  morningEnabled: boolean;
+  eveningEnabled: boolean;
+}
+
+export function parseAppSettings(raw: Record<string, string>): AppSettings {
+  return {
+    theme: raw['theme'] ?? 'p5',
+    morningEnabled: raw['morningEnabled'] !== 'false',
+    eveningEnabled: raw['eveningEnabled'] !== 'false',
+  };
 }
