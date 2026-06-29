@@ -8,136 +8,85 @@ Zeigt einen einzelnen Tag mit 3 Slots (Morning, Afternoon, Evening). Slots könn
 
 ## Funktionale Requirements
 
-### FR-1: Tagesnavigation
-
-**Beschreibung:** Der Benutzer kann zwischen Tagen navigieren.
+### FR-1: Tagesnavigation ✅
 
 **Akzeptanzkriterien:**
-- [ ] "←" navigiert zum Vortag, "→" zum Folgetag
-- [ ] "Today" springt zum heutigen Tag
-- [ ] Das aktuelle Datum wird angezeigt ("Monday, June 29, 2026")
-- [ ] Beim Start wird automatisch der heutige Tag angezeigt
-
-**Technische Anforderung:** Kein Full-Page-Reload bei Navigation (Angular Router oder Signal-basiertes Rendering).
+- [x] "←" navigiert zum Vortag, "→" zum Folgetag
+- [x] "Today" springt zum heutigen Tag
+- [x] Das aktuelle Datum wird angezeigt ("Monday, June 29, 2026")
+- [x] Beim Start wird automatisch der heutige Tag angezeigt
 
 ---
 
-### FR-2: 3-Slot-Tagesansicht
-
-**Beschreibung:** Drei Slots untereinander — Morning, Afternoon, Evening.
+### FR-2: 3-Slot-Tagesansicht ✅
 
 **Akzeptanzkriterien:**
-- [ ] Jeder Slot zeigt seinen Namen (Morning / Afternoon / Evening)
-- [ ] Jeder Slot zeigt seinen Status: "free" (leer) oder den Task-Namen
-- [ ] Ein "free"-Slot hat eine gedimmte/graue Darstellung
-- [ ] Ein "set"-Slot zeigt Task-Namen prominent + Stat-Badge
-
-**Visuals:**
-- Free: Grauer Hintergrund, "— Free —" Text
-- Set: Dunklerer Hintergrund, Task-Name fett, Stat-Badge rechts
+- [x] Jeder Slot zeigt seinen Namen (Morning / Afternoon / Evening)
+- [x] Jeder Slot zeigt seinen Status: "free" (leer) oder den Task-Namen
+- [x] Ein "free"-Slot hat eine gedimmte/graue Darstellung
+- [x] Ein "set"-Slot zeigt Task-Namen prominent + Stat-Badge
 
 ---
 
-### FR-3: Task-Auswahl pro Slot
-
-**Beschreibung:** Klick auf einen Slot öffnet ein Dropdown mit verfügbaren Tasks.
+### FR-3: Task-Auswahl pro Slot ✅
 
 **Akzeptanzkriterien:**
-- [ ] Klick auf Slot öffnet ein Dropdown-Menü
-- [ ] Dropdown zeigt alle verfügbaren Tasks aus `GET /api/tasks`
-- [ ] Task-Name + Stat-Badge sind im Dropdown sichtbar
-- [ ] Auswahl eines Tasks: Slot wechselt zu "set", Slot zeigt Task-Namen
-- [ ] Klick außerhalb des Dropdowns schließt es wieder
-- [ ] Dropdown kann "Remove" / "Freigeben" anbieten um Slot zu leeren
-
-**Datenfluss:**
-1. `GET /api/tasks` → liste aller Tasks
-2. `PUT /api/days/:date` → `{ slots: { morning: { status: 'set', taskId: 'xyz' } } }`
+- [x] Klick auf Slot öffnet ein Dropdown-Menü
+- [x] Dropdown zeigt alle verfügbaren Tasks aus `GET /api/tasks`
+- [x] Task-Name + Stat-Badge sind im Dropdown sichtbar
+- [x] Auswahl eines Tasks: Slot wechselt zu "set", Slot zeigt Task-Namen
+- [x] Klick außerhalb des Dropdowns schließt es wieder
+- [x] Dropdown bietet "Remove / Free Slot" um Slot zu leeren
 
 ---
 
-### FR-4: Template-Auto-Population
-
-**Beschreibung:** Beim Laden eines Tages werden Slots automatisch aus aktiven Templates befüllt.
+### FR-4: Template-Auto-Population ✅
 
 **Akzeptanzkriterien:**
-- [ ] `GET /api/days/:date` gibt im Response bereits `morningStatus: 'set'` mit `morningTaskId` zurück wenn ein Template matcht
-- [ ] Work-Template (Mo-Fr, Morning) ist beim Start bereits aktiv
-- [ ] Templates können Slots auf "free" zurücksetzen (Template-Override auf Tagesebene)
-
-**Hinweis:** Die Logik "Template auf Tag anwenden" passiert serverseitig in `GET /api/days/:date`:
-1. Prüfe alle aktiven Templates
-2. Prüfe für jeden Slot ob ein Template matcht (Slot + Wochentag)
-3. Falls ja, fülle `taskId` im Response
+- [x] `GET /api/days/:date` gibt im Response bereits `status: 'set'` mit `taskId` zurück wenn ein Template matcht
+- [x] Work-Template (Mo-Fr, Morning) ist beim Start bereits aktiv
+- [x] Templates können Slots auf "free" zurücksetzen (Template-Override auf Tagesebene)
 
 ---
 
-### FR-5: Backend API
+### FR-5: Backend API ✅
 
-**Endpoints:**
-
-| Method | Endpoint | Beschreibung |
-|--------|----------|--------------|
-| GET | `/api/days/:date` | Tag abrufen (YYYY-MM-DD). Liefert Slots mit Status, TaskId, Completed. Wendet aktive Templates an. |
-| PUT | `/api/days/:date` | Slot(s) eines Tags aktualisieren. Body: `{ slots: { morning?: { status, taskId } } }` |
-| GET | `/api/tasks` | Alle verfügbaren Tasks. Body: `[{ id, name, statId, statGain }]` |
-
-**GET /api/days/:date Response:**
-```json
-{
-  "date": "2026-06-29",
-  "slots": {
-    "morning": { "status": "set", "taskId": "work-1", "taskName": "Work", "statName": "Academics", "completed": false },
-    "afternoon": { "status": "free" },
-    "evening": { "status": "free" }
-  }
-}
-```
-
-**PUT /api/days/:date Request:**
-```json
-{
-  "slots": {
-    "morning": { "status": "set", "taskId": "study-1" },
-    "afternoon": { "status": "free" }
-  }
-}
-```
+| Method | Endpoint | Status |
+|--------|----------|--------|
+| GET | `/api/days/:date` | ✅ Implementiert |
+| PUT | `/api/days/:date` | ✅ Implementiert |
+| GET | `/api/tasks` | ✅ Implementiert |
 
 ---
 
-### FR-6: Seed-Daten
+### FR-6: Seed-Daten ✅
 
-**Tasks (vordefiniert, geladen durch Migration):**
 | ID | Name | Stat |
 |----|------|------|
-| work-1 | Work | Academics |
-| study-1 | Study | Academics |
-| gym-1 | Gym | Proficiency |
-| social-1 | Social | Kindness |
-| hobbies-1 | Hobbies | Guts |
+| work | Work | Academics (3) |
+| study | Study | Academics (2) |
+| gym | Gym | Proficiency (2) |
+| social | Social | Kindness (2) |
+| hobbies | Hobbies | Guts (2) |
 
-**Templates (vordefiniert, geladen durch Migration):**
-| ID | Task | Slot | DaysOfWeek | Enabled |
-|----|------|------|------------|---------|
-| work-template | work-1 | morning | 1,2,3,4,5 | true |
-
----
-
-## Non-Functional Requirements
-
-- **Performance:** Tag laden < 200ms (DB ist lokal, minimal)
-- **UX:** Slot-Interaktion in < 100ms optisch反馈
-- **Keine Fehler** im Browser bei Offline/Leerer DB
+**Template:** Work → Morning, Mo-Fr, enabled
 
 ---
 
 ## Out of Scope (diese Slice)
 
-- Statistik-Seite / Stat-Dashboard
+- ~~Stat-Growth-Logik~~ → **FR-7 (Slice 2)**
+- ~~Stat-Dashboard~~ → **Slice 2**
+- ~~Persona-Style UI~~ → **Slice 3**
 - PDF-Export
 - Bildupload
-- Task-CRUD UI (neue Tasks erstellen)
-- Template-Management UI (Templates bearbeiten)
+- Task-CRUD UI
+- Template-Management UI
 - Theme-Switcher
-- Stat-Growth-Logik
+
+---
+
+## Slice 2 — Coming Next
+
+1. **FR-7: Task als erledigt markieren** — Check-Button/Knopf pro Slot → `completed: true` → Stat-Growth berechnen
+2. **FR-8: Stats-Dashboard** — Übersicht aller Stats (Guts/Courage/Academics/Kindness/Proficiency) mit aktuellen Werten und Wachstum
