@@ -16,6 +16,8 @@ app.use('/api/skills', require('./routes/skills'));
 app.use('/api/templates', require('./routes/templates'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/statistics', require('./routes/statistics'));
+app.use('/api/stats', require('./routes/stats'));
+app.use('/api/dev', require('./routes/dev'));
 
 // Health check
 app.get('/api/health', (req, res) => {

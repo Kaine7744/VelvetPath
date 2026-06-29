@@ -40,6 +40,57 @@ const dbModule = {
   },
 
   // Days
+  async getDaysRange(startDate, endDate) {
+    await getDb();
+    const days = [];
+    const stmt = db.prepare(`
+      SELECT
+        date,
+        morningStatus, morningTaskId, morningCompleted,
+        afternoonStatus, afternoonTaskId, afternoonCompleted,
+        eveningStatus, eveningTaskId, eveningCompleted
+      FROM days WHERE date >= ? AND date <= ? ORDER BY date ASC
+    `);
+    stmt.bind([startDate, endDate]);
+    const existingRows = [];
+    while (stmt.step()) {
+      existingRows.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    // Build set of dates that have explicit DB records
+    const existingSet = new Set(existingRows.map(r => r.date));
+
+    // Generate all dates in range and fill gaps with templates
+    const cur = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    while (cur <= end) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, '0');
+      const d = String(cur.getDate()).padStart(2, '0');
+      const dateStr = `${y}-${m}-${d}`;
+      const dayOfWeek = cur.getDay();
+      const templates = await this.getTemplatesForDay(dayOfWeek);
+      const templateMap = {};
+      for (const t of templates) {
+        templateMap[t.slot] = t.taskId;
+      }
+      if (existingSet.has(dateStr)) {
+        const row = existingRows.find(r => r.date === dateStr);
+        days.push({
+          date: row.date,
+          morning: { status: row.morningStatus, taskId: row.morningTaskId, completed: row.morningCompleted === 1 },
+          afternoon: { status: row.afternoonStatus, taskId: row.afternoonTaskId, completed: row.afternoonCompleted === 1 },
+          evening: { status: row.eveningStatus, taskId: row.eveningTaskId, completed: row.eveningCompleted === 1 },
+        });
+      } else {
+        days.push(this.createDayFromTemplates(dateStr, templates));
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    return days;
+  },
+
   async getDay(date) {
     await getDb();
     const stmt = db.prepare(`
@@ -177,8 +228,10 @@ const dbModule = {
       if (slot.completed && !prevSlot.completed && slot.taskId) {
         const task = tasksMap[slot.taskId];
         if (task && task.statId) {
-          const growth = await this.growStat(task.statId, task.statGain);
-          if (growth) statGrowths.push({ slot: slotName, statId: task.statId, statName: task.statName, gain: growth });
+          const result = await this.growStat(task.statId, task.statGain);
+          if (result && result.gain > 0) {
+            statGrowths.push({ slot: slotName, statId: task.statId, statName: task.statName, gain: result.gain, oldTier: result.oldTier, newTier: result.newTier });
+          }
         }
       }
     }
@@ -186,17 +239,19 @@ const dbModule = {
   },
 
   async growStat(statId, amount) {
-    if (!statId || !amount) return 0;
+    if (!statId || !amount) return { gain: 0, oldValue: 0, newValue: 0, oldTier: 1, newTier: 1 };
     await getDb();
     const stmt = db.prepare('SELECT currentValue FROM skills WHERE id = ?');
     stmt.bind([statId]);
-    if (!stmt.step()) { stmt.free(); return 0; }
+    if (!stmt.step()) { stmt.free(); return { gain: 0, oldValue: 0, newValue: 0, oldTier: 1, newTier: 1 }; }
     const row = stmt.getAsObject();
     stmt.free();
+    const oldTier = Math.floor(row.currentValue / 100) + 1;
     const newValue = row.currentValue + amount;
+    const newTier = Math.floor(newValue / 100) + 1;
     db.run('UPDATE skills SET currentValue = ? WHERE id = ?', [newValue, statId]);
     saveDb();
-    return amount;
+    return { gain: amount, oldValue: row.currentValue, newValue, oldTier, newTier };
   },
 
   async getDayRecord(date) {
@@ -372,6 +427,52 @@ const dbModule = {
   async getStatistics(period, { startDate, endDate }) {
     // TODO: implement period-based statistics
     return { period, startDate, endDate, tasksCompleted: 0, statGrowth: {} };
+  },
+
+  // ============ DEV TOOLS ============
+
+  async resetDatabase() {
+    await getDb();
+
+    // Wipe all days, templates, and non-default tasks
+    db.run('DELETE FROM days');
+    db.run('DELETE FROM templates');
+    db.run("DELETE FROM tasks WHERE id NOT IN ('work','study','gym','social','hobbies')");
+
+    // Reset all skill values to 0
+    db.run('UPDATE skills SET currentValue = 0');
+
+    // Re-seed default tasks
+    const seedTasks = [
+      { id: 'work',   name: 'Work',   statId: 'academics',   statGain: 3 },
+      { id: 'study',  name: 'Study',  statId: 'academics',   statGain: 2 },
+      { id: 'gym',    name: 'Gym',    statId: 'proficiency', statGain: 2 },
+      { id: 'social', name: 'Social', statId: 'kindness',    statGain: 2 },
+      { id: 'hobbies',name: 'Hobbies',statId: 'guts',       statGain: 2 },
+    ];
+    for (const task of seedTasks) {
+      db.run(`INSERT OR IGNORE INTO tasks (id, name, statId, statGain) VALUES (?, ?, ?, ?)`, [
+        task.id, task.name, task.statId, task.statGain
+      ]);
+    }
+
+    // Re-seed work template (Mon-Fri Morning)
+    db.run(`INSERT OR IGNORE INTO templates (id, taskId, slot, daysOfWeek, enabled) VALUES (?, 'work', 'morning', '1,2,3,4,5', 1)`, ['work-default']);
+
+    saveDb();
+  },
+
+  async deleteNonDefaultTasks() {
+    await getDb();
+
+    // Count before deleting
+    const beforeResult = db.exec("SELECT COUNT(*) as count FROM tasks WHERE id NOT IN ('work','study','gym','social','hobbies')");
+    const count = beforeResult.length > 0 && beforeResult[0].values.length > 0 ? beforeResult[0].values[0][0] : 0;
+
+    db.run("DELETE FROM tasks WHERE id NOT IN ('work','study','gym','social','hobbies')");
+    saveDb();
+
+    return { deletedCount: count };
   },
 };
 

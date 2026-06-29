@@ -37,10 +37,10 @@
 
 ---
 
-## 🔄 Slice 3 — Persona UI (in progress)
-**Status:** Mostly done — theme switcher + UI polish just committed (`557772e`)
+## ✅ Slice 3 — Persona UI
+**Status:** Completed (`557772e`)
 
-### Features (done)
+### Features
 - [x] Side-Navigation (P5 Style)
 - [x] Spider/Radar Chart für Stats
 - [x] Tier-System (★×N) im Spider-Chart + Stat-Liste
@@ -50,14 +50,31 @@
 - [x] Glow-Effekte auf Slot-Cards (left border glow on hover)
 - [x] Persona-Style Check-Button
 - [x] UI Polish: P5 typography, borders, spacing
-
-### Features (remaining)
-- [ ] Tier-Up Animation (bei 100 erreichen) — needs growth event from backend
-- [ ] Page-Transition-Animationen
+- [x] Tier-Up Animation (bei 100 erreichen) — backend returns oldTier/newTier, AppComponent shows celebration overlay
+- [x] Page-Transition-Animationen — CSS overlay per theme on NavigationStart
 
 ---
 
-## 📋 Slice 4 — Recurring Templates & Task CRUD
+## 📋 Slice 4 — Dev Tools (Settings)
+**Status:** Backlog
+
+### Overview
+A hidden/dev section in the Settings page for development utilities. Actions require confirmation to prevent accidental data loss.
+
+### Features
+- [ ] **Dev Section** in Settings page (`/settings/dev`, only in dev mode via `isDevMode()`)
+- [ ] **Clear Database** — Wipes all days, templates, and resets stats to seed state (requires typing "DELETE" to confirm)
+- [ ] **Remove Non-Default Tasks** — Deletes all tasks where `isDefault === false` (requires checkbox confirmation)
+- [ ] Backend endpoints: `POST /api/dev/reset-db`, `DELETE /api/dev/tasks/non-default`
+
+### UI Behavior
+- Confirmation modal for each destructive action
+- Clear visual distinction between dev tools and regular settings
+- Only accessible when `NODE_ENV !== 'production'`
+
+---
+
+## 📋 Slice 5 — Recurring Templates & Task CRUD
 **Status:** Backlog
 
 ### Features
@@ -69,7 +86,7 @@
 
 ---
 
-## 📋 Slice 5 — Settings & Theme Management
+## 📋 Slice 6 — Settings & Theme Management
 **Status:** Backlog
 
 ### Features
@@ -80,7 +97,7 @@
 
 ---
 
-## 📋 Slice 6 — Statistics Dashboard (Detailed)
+## 📋 Slice 7 — Statistics Dashboard (Detailed)
 **Status:** Backlog
 
 ### Features
@@ -92,23 +109,15 @@
 
 ---
 
-## 📋 Slice 7 — PDF Export
+## 📋 Slice X — Cleanup UI and Other
 **Status:** Backlog
 
 ### Features
-- [ ] PDF-Export-Button auf Stats-Seite
-- [ ] `POST /api/pdf` — Puppeteer rendert HTML → PDF
-- [ ] PDF-Download als Datei
-
----
-
-## 📋 Slice 8 — Profile Image Upload
-**Status:** Backlog
-
-### Features
-- [ ] Profile-Bild hochladen (Crop + Upload)
-- [ ] `POST /api/upload` mit Multer
-- [ ] Bild-URL in CV/Settings speichern
+- [ ] Fix drip-divider SVG encoding issues
+- [ ] Consistent font sizes across themes (--font-display-scale)
+- [ ] Remove duplicate CSS from components (drip-divider, etc.)
+- [ ] Fix any remaining UI glitches
+- [ ] Remove unused CSS rules
 
 ---
 
