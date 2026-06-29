@@ -168,6 +168,35 @@ const dbModule = {
       evening.status, evening.taskId, evening.completed ? 1 : 0
     ]);
     saveDb();
+
+    // Stat growth: when a slot transitions to completed, grow the associated stat
+    const statGrowths = [];
+    const allTasks = await this.getAllTasks();
+    const tasksMap = Object.fromEntries(allTasks.map(t => [t.id, t]));
+    for (const [slotName, slot, prevSlot] of [['morning', morning, existing.morning], ['afternoon', afternoon, existing.afternoon], ['evening', evening, existing.evening]]) {
+      if (slot.completed && !prevSlot.completed && slot.taskId) {
+        const task = tasksMap[slot.taskId];
+        if (task && task.statId) {
+          const growth = await this.growStat(task.statId, task.statGain);
+          if (growth) statGrowths.push({ slot: slotName, statId: task.statId, statName: task.statName, gain: growth });
+        }
+      }
+    }
+    return { statGrowths };
+  },
+
+  async growStat(statId, amount) {
+    if (!statId || !amount) return 0;
+    await getDb();
+    const stmt = db.prepare('SELECT currentValue FROM stats WHERE id = ?');
+    stmt.bind([statId]);
+    if (!stmt.step()) { stmt.free(); return 0; }
+    const row = stmt.getAsObject();
+    stmt.free();
+    const newValue = row.currentValue + amount;
+    db.run('UPDATE stats SET currentValue = ? WHERE id = ?', [newValue, statId]);
+    saveDb();
+    return amount;
   },
 
   async getDayRecord(date) {

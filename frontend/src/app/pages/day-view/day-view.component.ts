@@ -1,5 +1,6 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
 import { Day, Task, SlotsPayload } from '../../models';
@@ -8,7 +9,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
 @Component({
   selector: 'app-day-view',
   standalone: true,
-  imports: [CommonModule, DatePipe, SlotCardComponent],
+  imports: [CommonModule, DatePipe, SlotCardComponent, RouterLink],
   template: `
     <div class="day-view">
       <header class="day-header">
@@ -18,7 +19,10 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
           <span class="day-full">{{ currentDate() | date:'MMMM d, y' }}</span>
         </div>
         <button class="nav-btn" (click)="nextDay()">→</button>
-        <button class="today-btn" (click)="goToToday()">Today</button>
+        <div class="header-actions">
+          <button class="today-btn" (click)="goToToday()">Today</button>
+          <a class="stats-link" routerLink="/stats">Stats</a>
+        </div>
       </header>
 
       <div class="slots-container">
@@ -27,18 +31,21 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
           slotName="Morning"
           [tasks]="tasks()"
           (taskSelected)="onSlotTaskSelected('morning', $event)"
+          (completed)="onSlotCompleted('morning', $event)"
         />
         <app-slot-card
           [slot]="dayData()?.slots?.afternoon || emptySlot()"
           slotName="Afternoon"
           [tasks]="tasks()"
           (taskSelected)="onSlotTaskSelected('afternoon', $event)"
+          (completed)="onSlotCompleted('afternoon', $event)"
         />
         <app-slot-card
           [slot]="dayData()?.slots?.evening || emptySlot()"
           slotName="Evening"
           [tasks]="tasks()"
           (taskSelected)="onSlotTaskSelected('evening', $event)"
+          (completed)="onSlotCompleted('evening', $event)"
         />
       </div>
     </div>
@@ -88,6 +95,10 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       font-weight: 600;
       color: #fff;
     }
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
     .today-btn {
       background: rgba(233,30,99,0.2);
       border: 1px solid rgba(233,30,99,0.4);
@@ -101,6 +112,23 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
     .today-btn:hover {
       background: rgba(233,30,99,0.35);
+    }
+    .stats-link {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .stats-link:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
     }
     .slots-container {
       display: flex;
@@ -116,7 +144,6 @@ export class DayViewComponent implements OnInit {
   currentDate = signal(new Date());
   dayData = signal<Day | null>(null);
   tasks = signal<Task[]>([]);
-  isLoading = signal(false);
 
   emptySlot = () => ({ status: 'free' as const, taskId: null, completed: false, task: null });
 
@@ -155,6 +182,14 @@ export class DayViewComponent implements OnInit {
       [slotName]: taskId === null
         ? { status: 'free' }
         : { status: 'set', taskId }
+    };
+    this.dayService.updateDay(dateStr, payload).subscribe(day => this.dayData.set(day));
+  }
+
+  onSlotCompleted(slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
+    const dateStr = this.toDateString(this.currentDate());
+    const payload: SlotsPayload = {
+      [slotName]: { completed: true }
     };
     this.dayService.updateDay(dateStr, payload).subscribe(day => this.dayData.set(day));
   }

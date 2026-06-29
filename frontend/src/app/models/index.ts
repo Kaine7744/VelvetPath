@@ -17,6 +17,14 @@ export interface Day {
     afternoon: Slot;
     evening: Slot;
   };
+  statGrowths?: StatGrowth[];
+}
+
+export interface StatGrowth {
+  slot: string;
+  statId: string;
+  statName: string;
+  gain: number;
 }
 
 export interface Task {
