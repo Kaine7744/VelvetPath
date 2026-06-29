@@ -16,25 +16,24 @@
 
 ---
 
-## 🔜 Slice 2 — Stats & Completion
-**Status:** Next — **Implementierung starten**
+## ✅ Slice 2 — Stats & Completion
+**Status:** Completed (`18e38e7`)
 
 ### Features
-- [ ] **FR-7**: Check-Button → Task als erledigt markieren → Stat wächst
-- [ ] **FR-8**: Stats-Dashboard (`/stats`) mit aktuellen Werten + Growth
+- [x] **FR-7**: Check-Button → Task als erledigt markieren → Stat wächst
+- [x] **FR-8**: Stats-Dashboard (`/stats`) mit aktuellen Werten + Growth
 
-### Backend Tasks
-- [ ] `updateDay`: Bei `completed: true` → Stat-Growth berechnen + persistieren
-- [ ] `GET /api/stats`: Alle Stats mit `currentValue`
-- [ ] Optional: `POST /api/stats/:id/grow` als separater Endpoint
+### Backend
+- [x] `updateDay`: Bei `completed: true` → `growStat()` → `stat.currentValue += statGain`
+- [x] PUT Response enthält `statGrowths[]` mit Details
+- [x] `GET /api/stats` liefert alle Stats mit `currentValue`
 
-### Frontend Tasks
-- [ ] `StatsPageComponent` erstellen
-- [ ] Stats-Dashboard Route `/stats`
-- [ ] Check-Button in `SlotCardComponent`
-- [ ] `completed`-State visualisieren (grüner Haken, Strike-through)
-- [ ] "+X Stat" Float-Animation bei Erledigung
-- [ ] Nav-Link von Day → Stats
+### Frontend
+- [x] `SlotCardComponent`: Check-Button (grüner Kreis), completed-State
+- [x] "+X Stat" Float-Up Animation bei Erledigung
+- [x] `StatsPageComponent`: Stat-Cards mit Icon, Wert, Fortschrittsbalken
+- [x] Route `/stats` → StatsPageComponent
+- [x] Nav-Link von Day-View → Stats
 
 ---
 
