@@ -1,0 +1,29 @@
+/* Global styles - VelvetPath Theme */
+:root {
+  /* Persona 5 inspired (default) */
+  --color-primary: #e91e63;
+  --color-secondary: #ff4081;
+  --color-accent: #ff1744;
+  --color-background: #121212;
+  --color-surface: #1e1e1e;
+  --color-surface-variant: #2d2d2d;
+  --color-on-primary: #ffffff;
+  --color-on-background: #ffffff;
+  --color-on-surface: #e0e0e0;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b0b0b0;
+  --color-border: #424242;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}

@@ -1,0 +1,23 @@
+{
+  "name": "velvetpath-backend",
+  "version": "0.1.0",
+  "description": "VelvetPath Express Backend",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "echo 'No build step for backend'",
+    "test": "echo 'No tests yet'",
+    "lint": "echo 'No linter configured'",
+    "migrate": "node database/migrate.js"
+  },
+  "private": true,
+  "dependencies": {
+    "sql.js": "^1.10.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
