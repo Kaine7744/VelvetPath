@@ -12,12 +12,6 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
   template: `
     <div class="chart-wrapper">
       <canvas #chartCanvas></canvas>
-      @if (maxTier() > 1) {
-        <div class="tier-badge">
-          <span class="tier-star">★</span>
-          <span class="tier-num">×{{ maxTier() }}</span>
-        </div>
-      }
     </div>
   `,
   styles: [`
@@ -30,34 +24,6 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
     canvas {
       width: 100% !important;
       aspect-ratio: 1 !important;
-    }
-    .tier-badge {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--color-bg);
-      border: 2px solid var(--color-primary);
-      border-radius: 50%;
-      width: 64px;
-      height: 64px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 20px var(--color-glow);
-      pointer-events: none;
-    }
-    .tier-star {
-      font-size: 1.2rem;
-      color: var(--color-primary);
-    }
-    .tier-num {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 1.4rem;
-      color: var(--color-text);
-      line-height: 1;
     }
   `]
 })
@@ -109,6 +75,11 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
     return Math.min(100, skill.currentValue % 100 || (skill.currentValue > 0 ? 100 : 0));
   }
 
+  private getScaleMax(): number {
+    const maxStatValue = Math.max(...this.skills().map(s => s.currentValue), 0);
+    return Math.ceil(maxStatValue / 100) * 100 + 100;
+  }
+
   private createChart() {
     if (!this.chartCanvas) return;
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
@@ -145,7 +116,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
         scales: {
           r: {
             min: 0,
-            max: 100,
+            max: this.getScaleMax(),
             beginAtZero: true,
             angleLines: { color: 'rgba(255,255,255,0.08)' },
             grid: { color: 'rgba(255,255,255,0.08)' },
@@ -182,10 +153,10 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private updateChart() {
     if (!this.chart) return;
-    const skills = this.skills();
     this.chart.data.labels = this.getOrderedLabels();
     this.chart.data.datasets[0].data = this.getOrderedData();
     (this.chart.data.datasets[0] as ChartDataset<'radar'>).pointBackgroundColor = this.getOrderedColors();
+    (this.chart.options.scales as any)['r'].max = this.getScaleMax();
     this.chart.update();
   }
 
