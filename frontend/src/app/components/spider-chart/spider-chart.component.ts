@@ -106,7 +106,8 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private getSkillValue(skill: Skill): number {
-    return Math.min(100, skill.currentValue % 100 || (skill.currentValue > 0 ? 100 : 0));
+    const inner = skill.currentValue % 100;
+    return inner === 0 && skill.currentValue > 0 ? 100 : inner;
   }
 
   private createChart() {
@@ -116,12 +117,15 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
 
     const skills = this.skills();
     const labels = this.getOrderedLabels();
-    const data = this.getOrderedData(skills);
+    const data = this.getOrderedData();
 
     const themePrimary = this.getThemePrimary();
     const gradient = ctx.createRadialGradient(150, 150, 0, 150, 150, 150);
     gradient.addColorStop(0, themePrimary + '80');
     gradient.addColorStop(1, themePrimary + '0d');
+
+    const maxSkillValue = Math.max(...skills.map(s => s.currentValue));
+    const chartMax = maxSkillValue > 0 ? Math.ceil(maxSkillValue / 100) * 100 + 100 : 100;
 
     const dataset: ChartDataset<'radar'> = {
       data,
@@ -135,6 +139,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
       pointHoverRadius: 8,
     };
 
+    const self = this;
     this.chart = new Chart(ctx, {
       type: 'radar',
       data: { labels, datasets: [dataset] },
@@ -144,7 +149,7 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
         scales: {
           r: {
             min: 0,
-            max: 100,
+            max: chartMax,
             beginAtZero: true,
             angleLines: { color: 'rgba(255,255,255,0.08)' },
             grid: { color: 'rgba(255,255,255,0.08)' },
@@ -166,9 +171,10 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
             padding: 10,
             callbacks: {
               label: (ctx) => {
-                const skill = skills[ctx.dataIndex];
+                const label = self.chart?.data.labels?.[ctx.dataIndex] ?? '';
+                const skill = self.skills()[ctx.dataIndex];
                 const tier = Math.floor(skill.currentValue / 100) + 1;
-                return ` ${skill.currentValue} / ${tier * 100}`;
+                return ` ${label}: ${skill.currentValue} / ${tier * 100}`;
               },
             },
           },
@@ -182,32 +188,21 @@ export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!this.chart) return;
     const skills = this.skills();
     this.chart.data.labels = this.getOrderedLabels();
-    this.chart.data.datasets[0].data = this.getOrderedData(skills);
+    this.chart.data.datasets[0].data = this.getOrderedData();
     (this.chart.data.datasets[0] as ChartDataset<'radar'>).pointBackgroundColor = this.getOrderedColors();
     this.chart.update();
   }
 
   private getOrderedLabels(): string[] {
-    const order = ['guts', 'courage', 'academics', 'kindness', 'proficiency'];
-    const names: Record<string, string> = {
-      guts: 'GUTS', courage: 'COURAGE', academics: 'ACADEMICS',
-      kindness: 'KINDNESS', proficiency: 'PROFICIENCY',
-    };
-    return order.map(id => names[id]);
+    return this.skills().map(s => s.name.toUpperCase());
   }
 
-  private getOrderedData(skills: Skill[]): number[] {
-    const order = ['guts', 'courage', 'academics', 'kindness', 'proficiency'];
-    const map = Object.fromEntries(skills.map(s => [s.id, s]));
-    return order.map(id => map[id] ? this.getSkillValue(map[id]) : 0);
+  private getOrderedData(): number[] {
+    return this.skills().map(s => this.getSkillValue(s));
   }
 
   private getOrderedColors(): string[] {
-    const order = ['guts', 'courage', 'academics', 'kindness', 'proficiency'];
-    const colors: Record<string, string> = {
-      guts: '#e65100', courage: '#f9a825', academics: '#1565c0',
-      kindness: '#c2185b', proficiency: '#2e7d32',
-    };
-    return order.map(id => colors[id]);
+    const palette = ['#e8001a', '#ffd700', '#3949ab', '#76ff03', '#00b4c8', '#ff6f00', '#8e24aa', '#00897b'];
+    return this.skills().map((_, i) => palette[i % palette.length]);
   }
 }
