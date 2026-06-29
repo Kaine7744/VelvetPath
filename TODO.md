@@ -37,22 +37,23 @@
 
 ---
 
-## 📋 Slice 3 — Persona UI
-**Status:** Spec fertig (`specs/slice3-persona-ui.md`)
+## 🔄 Slice 3 — Persona UI (in progress)
+**Status:** Side nav + Spider chart done (`e2f6d47`)
 
-### Features
-- [ ] **FR-9**: Komplettes P5-Style UI-Redesign
-- [ ] **FR-10**: Theme-Switcher (P3 / P4 / P5)
+### Features (done)
+- [x] Side-Navigation (P5 Style)
+- [x] Spider/Radar Chart für Stats
+- [x] Tier-System (★×N) im Spider-Chart + Stat-Liste
+- [x] P5 Dark Theme (CSS Custom Properties)
+- [x] Montserrat Font
+- [x] Grid-Pattern Hintergrund
 
-### UI-Elemente
-- [ ] Glow-Effekte auf allen interaktiven Elementen
-- [ ] Animierte Border-Glow auf Slot-Cards
-- [ ] Persona-Style Check-Button (Circle → Green ✓)
-- [ ] Stat-Fortschrittsbalken animiert
-- [ ] P5 Farbschema als CSS Custom Properties
-- [ ] Montserrat Font für Headlines
+### Features (remaining)
+- [ ] Glow-Effekte auf Slot-Cards animiert
+- [ ] Persona-Style Check-Button Animation
+- [ ] Tier-Up Animation (bei 100 erreichen)
+- [ ] Theme-Switcher (P3 / P4 / P5)
 - [ ] Page-Transition-Animationen
-- [ ] Scrollbar / Selection / Focus States
 
 ---
 
