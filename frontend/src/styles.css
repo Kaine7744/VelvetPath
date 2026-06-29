@@ -1,29 +1,43 @@
-/* Global styles - VelvetPath Theme */
+/* VelvetPath — Persona 5 Theme */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
+
 :root {
-  /* Persona 5 inspired (default) */
   --color-primary: #e91e63;
-  --color-secondary: #ff4081;
-  --color-accent: #ff1744;
-  --color-background: #121212;
+  --color-bg: #121212;
   --color-surface: #1e1e1e;
-  --color-surface-variant: #2d2d2d;
-  --color-on-primary: #ffffff;
-  --color-on-background: #ffffff;
-  --color-on-surface: #e0e0e0;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #b0b0b0;
-  --color-border: #424242;
+  --color-text: #ffffff;
+  --color-border: rgba(255, 255, 255, 0.1);
 }
 
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 html, body {
   height: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
+}
+
+body {
+  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+button {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
 }

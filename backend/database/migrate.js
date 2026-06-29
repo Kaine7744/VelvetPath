@@ -95,10 +95,19 @@ async function migrate() {
     ]);
   }
 
-  // Seed default Work task
-  const workTaskExists = db.exec("SELECT id FROM tasks WHERE name = 'Work'");
-  if (workTaskExists.length === 0 || workTaskExists[0].values.length === 0) {
-    db.run(`INSERT INTO tasks (id, name, statId, statGain) VALUES (?, ?, NULL, 0)`, ['work', 'Work']);
+  // Seed default tasks
+  const seedTasks = [
+    { id: 'work', name: 'Work', statId: 'academics', statGain: 3 },
+    { id: 'study', name: 'Study', statId: 'academics', statGain: 2 },
+    { id: 'gym', name: 'Gym', statId: 'proficiency', statGain: 2 },
+    { id: 'social', name: 'Social', statId: 'kindness', statGain: 2 },
+    { id: 'hobbies', name: 'Hobbies', statId: 'guts', statGain: 2 },
+  ];
+
+  for (const task of seedTasks) {
+    db.run(`INSERT OR IGNORE INTO tasks (id, name, statId, statGain) VALUES (?, ?, ?, ?)`, [
+      task.id, task.name, task.statId, task.statGain
+    ]);
   }
 
   // Seed default Work template (Mon-Fri Morning)

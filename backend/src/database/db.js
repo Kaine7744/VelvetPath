@@ -115,6 +115,45 @@ const dbModule = {
 
   async updateDay(date, slots) {
     await getDb();
+
+    // Get raw existing record from DB (may not exist)
+    const rawExisting = await this.getDayRecord(date);
+
+    // Apply templates to fill gaps in raw existing (for slots with no explicit value)
+    const dayOfWeek = new Date(date).getDay();
+    const templates = await this.getTemplatesForDay(dayOfWeek);
+    const templateMap = {};
+    for (const t of templates) {
+      templateMap[t.slot] = t.taskId;
+    }
+
+    const applyTemplate = (slot, slotName) => {
+      if (slot.status === 'free' && templateMap[slotName]) {
+        return { status: 'set', taskId: templateMap[slotName], completed: false };
+      }
+      return slot;
+    };
+
+    const existing = {
+      morning: applyTemplate(rawExisting.morning, 'morning'),
+      afternoon: applyTemplate(rawExisting.afternoon, 'afternoon'),
+      evening: applyTemplate(rawExisting.evening, 'evening'),
+    };
+
+    // Merge: provided slots always win, rest comes from existing (with templates applied)
+    const mergeSlot = (existing, provided) => {
+      if (!provided) return existing;
+      return {
+        status: provided.status || existing.status,
+        taskId: provided.status === 'free' ? null : (provided.taskId ?? existing.taskId),
+        completed: provided.completed !== undefined ? provided.completed : existing.completed,
+      };
+    };
+
+    const morning = mergeSlot(existing.morning, slots.morning);
+    const afternoon = mergeSlot(existing.afternoon, slots.afternoon);
+    const evening = mergeSlot(existing.evening, slots.evening);
+
     db.run(`
       INSERT OR REPLACE INTO days (
         date,
@@ -124,11 +163,32 @@ const dbModule = {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       date,
-      slots.morning?.status || 'free', slots.morning?.taskId || null, slots.morning?.completed ? 1 : 0,
-      slots.afternoon?.status || 'free', slots.afternoon?.taskId || null, slots.afternoon?.completed ? 1 : 0,
-      slots.evening?.status || 'free', slots.evening?.taskId || null, slots.evening?.completed ? 1 : 0
+      morning.status, morning.taskId, morning.completed ? 1 : 0,
+      afternoon.status, afternoon.taskId, afternoon.completed ? 1 : 0,
+      evening.status, evening.taskId, evening.completed ? 1 : 0
     ]);
     saveDb();
+  },
+
+  async getDayRecord(date) {
+    await getDb();
+    const stmt = db.prepare('SELECT * FROM days WHERE date = ?');
+    stmt.bind([date]);
+    if (stmt.step()) {
+      const row = stmt.getAsObject();
+      stmt.free();
+      return {
+        morning: { status: row.morningStatus, taskId: row.morningTaskId, completed: row.morningCompleted === 1 },
+        afternoon: { status: row.afternoonStatus, taskId: row.afternoonTaskId, completed: row.afternoonCompleted === 1 },
+        evening: { status: row.eveningStatus, taskId: row.eveningTaskId, completed: row.eveningCompleted === 1 },
+      };
+    }
+    stmt.free();
+    return {
+      morning: { status: 'free', taskId: null, completed: false },
+      afternoon: { status: 'free', taskId: null, completed: false },
+      evening: { status: 'free', taskId: null, completed: false },
+    };
   },
 
   // Tasks
