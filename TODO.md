@@ -243,16 +243,20 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 ---
 
-## 📋 Slice 14 — UI Cleanup & Polish
-**Status:** Backlog
+## ✅ Slice 14 — UI Cleanup & Polish
+**Status:** Completed (`b5ad8d7`)
 
 ### Features
-- [ ] Fix drip-divider SVG encoding issues
-- [ ] Consistent font sizes across themes (--font-display-scale)
-- [ ] Remove duplicate CSS from components (drip-divider, etc.)
-- [ ] Fix any remaining UI glitches and inconsistencies
-- [ ] Remove unused CSS rules
-- [ ] Design UI closer to Persona Games
+- [x] Date range header: shows "Jun 29 – Jul 1" when 3 days shown
+- [x] Recurring label: "RECURRING" (not "TODAY")
+- [x] Days grid: theme-colored border frame
+- [x] --font-display-scale applied to page-title, day-range, day-num
+- [x] Drip divider: clean symmetric zigzag SVG (P5/P4/P3)
+- [x] Page transitions fixed for P4/P3 (::before with inset:0)
+- [x] Nav reorder: SKILLS between TASKS and RECURRING
+- [x] Skill.icon field + emoji picker in skills page
+- [x] Skills page = chart hub, Stats page = pure analytics
+- [x] GET /api/statistics/popular-tasks endpoint
 
 ---
 
