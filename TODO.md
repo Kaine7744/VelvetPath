@@ -285,6 +285,36 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 ---
 
+## ✅ Slice 17 — Day View UX Overhaul + Radical Theme Differentiation
+**Status:** Completed (`d5a2295`)
+
+### Features
+
+**Recurring Per-Day-Column:**
+- [x] `recurringPerDay` signal: `Record<string, RecurringTask[]>` replaces single `recurringForCenter`
+- [x] `forkJoin` loads recurring for all 3 visible days in parallel after each `loadDays()`
+- [x] Recurring pills moved **inside** each `.day-column` day-header, compact styling
+- [x] Removed old standalone `recurring-section` above the grid
+
+**Horizontal Scroll Navigation:**
+- [x] `@ViewChild` scroll container with `scrollBy({ behavior: 'smooth' })` on ← → buttons
+- [x] `scrollToCenter()` called in `ngAfterViewInit` on init
+- [x] `goToToday()` scrolls container to start before reloading
+
+**Radical Theme Differentiation:**
+- [x] P5 "Phantom Thief": near-black `#050508`, diagonal red stripe bg pattern, clip-path cards, Bebas Neue, hard 5px shadow
+- [x] P4 "Midnight Channel": `#1a1a1a`, Junes yellow `#f7d000`, top-border only panels, Arial Black, TV frame cards with inner shadow, CRT scanlines overlay
+- [x] P3 "Dark Moon": `#0a0e1a` navy, teal `#00b4c8`, Cinzel + Share Tech Mono, glass morphism `backdrop-filter: blur()`, diagonal clip-path
+- [x] P4/P3 `.slots-wrapper` skew bug fixed — targets `.slots-wrapper` directly (not just `.skew-outer`)
+- [x] All 3 themes use the new `persona-ui.md` spec as reference
+
+### Files
+- `frontend/src/app/pages/day-view/day-view.component.ts` — recurring-per-day, scroll navigation
+- `frontend/src/app/services/theme.service.ts` — updated cssVars for all 3 themes
+- `frontend/src/styles.css` — complete P5/P4/P3 rewrite with maximal visual distinction
+
+---
+
 ## Misbehavior Tally
 
 | # | Slice | Issue | Status |
