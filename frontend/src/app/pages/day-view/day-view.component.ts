@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
@@ -36,7 +36,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <div class="days-scroll-container" #scrollContainer (scroll)="onScroll()">
+      <div class="days-scroll-container" #scrollContainer (wheel)="onWheel($event)">
         <div class="days-grid">
           @for (day of daysData(); track day.date; let i = $index) {
             <div class="day-column">
@@ -176,7 +176,6 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
     .days-scroll-container {
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
       padding-bottom: 8px;
     }
@@ -281,9 +280,8 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   morningEnabled = signal(true);
   eveningEnabled = signal(true);
 
-  private lastScrollLeft = 0;
+  private columnWidth = 236;
   private isScrolling = false;
-  private columnWidth = 236; // px — minmax(220px, 1fr) + gap approximation
 
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
@@ -296,38 +294,38 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadDays();
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    setTimeout(() => this.measureColumnWidth(), 0);
+  }
 
   ngOnDestroy() {}
 
-  onScroll() {
+  private measureColumnWidth() {
+    if (!this.scrollContainer) return;
+    const el = this.scrollContainer.nativeElement;
+    const rect = el.getBoundingClientRect();
+    // container width minus left+right padding (1rem each = 32px), divide by 3 columns minus 2 gaps (1.5rem each = 48px)
+    const usableWidth = rect.width - 32 - 48;
+    this.columnWidth = usableWidth / 3;
+    el.scrollLeft = this.columnWidth;
+  }
+
+  onWheel(event: WheelEvent) {
+    event.preventDefault();
+
+    const delta = event.deltaX || event.deltaY;
+    if (Math.abs(delta) < 5) return; // ignore tiny movements
+
     if (this.isScrolling) return;
-    const el = this.scrollContainer?.nativeElement;
-    if (!el) return;
-
-    const delta = el.scrollLeft - this.lastScrollLeft;
-
-    // Ignore tiny scrolls (browser momentum noise)
-    if (Math.abs(delta) < 20) return;
-
     this.isScrolling = true;
 
     if (delta > 0) {
-      // Scrolling right → next day
       this.centerDate.set(this.offsetDate(this.centerDate(), 1));
     } else {
-      // Scrolling left → previous day
       this.centerDate.set(this.offsetDate(this.centerDate(), -1));
     }
 
-    this.loadDays(() => {
-      // After reload, restore scroll position so center column stays in view
-      if (el) {
-        el.scrollLeft = this.columnWidth;
-      }
-      this.lastScrollLeft = el ? el.scrollLeft : this.columnWidth;
-      this.isScrolling = false;
-    });
+    this.loadDays();
   }
 
   private loadDays(onDone?: () => void) {
@@ -338,7 +336,13 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(days => {
         this.daysData.set(days);
         this.loadRecurringForDay(this.toDateString(center));
-        onDone?.();
+        setTimeout(() => {
+          if (this.scrollContainer) {
+            this.scrollContainer.nativeElement.scrollLeft = this.columnWidth;
+          }
+          this.isScrolling = false;
+          onDone?.();
+        }, 0);
       });
   }
 
@@ -356,36 +360,24 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   previousDay() {
+    if (this.isScrolling) return;
+    this.isScrolling = true;
     this.centerDate.set(this.offsetDate(this.centerDate(), -1));
-    this.loadDays(() => {
-      const el = this.scrollContainer?.nativeElement;
-      if (el) {
-        el.scrollLeft = this.columnWidth;
-        this.lastScrollLeft = el.scrollLeft;
-      }
-    });
+    this.loadDays();
   }
 
   nextDay() {
+    if (this.isScrolling) return;
+    this.isScrolling = true;
     this.centerDate.set(this.offsetDate(this.centerDate(), 1));
-    this.loadDays(() => {
-      const el = this.scrollContainer?.nativeElement;
-      if (el) {
-        el.scrollLeft = this.columnWidth;
-        this.lastScrollLeft = el.scrollLeft;
-      }
-    });
+    this.loadDays();
   }
 
   goToToday() {
+    if (this.isScrolling) return;
+    this.isScrolling = true;
     this.centerDate.set(new Date());
-    this.loadDays(() => {
-      const el = this.scrollContainer?.nativeElement;
-      if (el) {
-        el.scrollLeft = this.columnWidth;
-        this.lastScrollLeft = el.scrollLeft;
-      }
-    });
+    this.loadDays();
   }
 
   isToday(dateStr: string): boolean {
