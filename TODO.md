@@ -337,11 +337,66 @@ Restored 3-day side-by-side grid with proper day navigation via ← → buttons.
 
 | # | Slice | Issue | Status |
 |---|-------|-------|--------|
-| M1 | Slice 6 | Settings sub-nav disappears on `/settings/dev` — no back nav | Open |
+| M1 | Slice 6 | Settings sub-nav disappears on `/settings/dev` — no back nav | **Fixed** (back link added) |
 | M2 | Slice 3 | Spider chart renders nothing when all stats are 0 | Open (by design) |
 | M3 | Slice 3 | VP logo looks off/wrong | **Fixed** |
 | M4 | Slice 3 | Colored border boxes inconsistent | **Fixed** |
 | M5 | Slice 3 | Page animations P4/P3 broken | **Fixed** |
+
+---
+
+## Known Bugs (Unresolved)
+
+### KB-1: Spider Chart Stale After Level-Up
+**Severity:** Medium
+**Affected since:** Slice 3 (Spider Chart original implementation)
+
+**Problem:** The spider chart does not update when skill values change. After completing a task (gaining stat points) or undoing one (losing points), the radar chart shows stale values even though the backend data is correct.
+
+**Root Cause:** `spider-chart.component.ts` uses `skills = input<Skill[]>([])` — the Angular signal-based `input()` API. The component implements `OnChanges` and checks `ngOnChanges`, but **`ngOnChanges` is never called for signal inputs**. The change detection callback is effectively dead code.
+
+**Attempts to Fix:**
+- Replaced `ngOnChanges` with `effect()` in the constructor — `effect()` does track signal changes correctly
+- The chart should re-render when `skills()` signal updates
+
+**Status:** Still not working despite the fix. The `effect()` fires but the chart update behavior may need deeper investigation. Likely causes:
+- Chart.js radar chart `update()` may not properly handle scale changes after data update
+- The canvas or chart context may not be in a valid state when `effect()` fires
+- There may be a timing issue with `ngAfterViewInit` vs the `effect` trigger race
+
+**Workaround:** Navigate away from and back to the skills page after completing tasks.
+
+---
+
+### KB-2: Settings Dev Page Has No Back Navigation
+**Severity:** Low
+**Affected since:** Slice 4 (Dev Tools original implementation)
+
+**Problem:** The `/settings/dev` route is a separate Angular route from `/settings`. When navigating to `/settings/dev`, the `SettingsPageComponent` is destroyed, taking the sub-nav tabs and any back links with it. The dev page had no way to navigate back.
+
+**Root Cause:** Settings uses a sub-nav with `activeTab` signal for internal tab state. The Dev tab links to a separate route (`/settings/dev`) rather than a tab within the settings page.
+
+**Status:** Partially addressed — a back link was added to the dev page. The sidebar always remains visible.
+
+**Workaround:** Use the sidebar "CONFIG" nav item to return to settings, or the "Back to Settings" link on the dev page.
+
+---
+
+### KB-3: Undo Does Not Remove Stat Points (Frontend Staleness)
+**Severity:** Medium
+**Affected since:** Slice 10 (Reversible Completion)
+
+**Problem:** When undoing a completed task, the backend correctly subtracts stat points (`shrinkStat()`), but the frontend skill display (spider chart, skills list) does not reflect the reduction.
+
+**Root Cause:** After undo, `day-view.component.ts` calls `loadDays()` to refresh day data but does not reload skills. The skills signal anywhere in the app stays stale with the old value.
+
+**Attempts to Fix:**
+- Added `skillService.getSkills()` call in `onSlotUncompleted()` to refresh skills after undo
+- Backend `shrinkStat()` condition changed from `result.gain < 0` to `result.newValue !== result.oldValue`
+
+**Status:** Partially addressed — skills should now be reloaded after undo. Interacts with KB-1 so the spider chart may still not update.
+
+**Workaround:** Hard-refresh the skills page after undoing a task.
 
 ---
 
