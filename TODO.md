@@ -315,6 +315,27 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 ---
 
+## ✅ Slice 18 — Infinite Horizontal Day Scroll (iPhone Timer Wheel)
+**Status:** Completed (`8d5422f`)
+
+### Overview
+Native horizontal scroll IS the navigation. Scroll through days like an iPhone timer picker — new days load infinitely as you approach the edges.
+
+### Features
+- [x] `onScroll()`: calculates `centerIndex` from `scrollLeft / columnWidth`
+- [x] `loadMoreDays('forward'|'backward')`: fetches next/prev 3-day batches when approaching edges
+- [x] `centerIndex` signal tracks which column is centered; `centerDate` derived from it
+- [x] Recurring pills: only shown for center day (`i === centerIndex()`)
+- [x] `← →` buttons: `scrollBy(±1 column)`, no date mutation — scroll handler does all state updates
+- [x] `scrollToToday()`: finds today in loaded days, scrolls to it; reloads if not present
+- [x] `reloadDay(date)`: single-day reload via `getDay(date)` after slot updates (no full `loadDays()`)
+- [x] 7 days loaded initially (today ± 3), more fetched on scroll
+
+### Files
+- `frontend/src/app/pages/day-view/day-view.component.ts`
+
+---
+
 ## Misbehavior Tally
 
 | # | Slice | Issue | Status |
