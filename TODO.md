@@ -260,26 +260,29 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 ---
 
-## 📋 Slice 15 — Full App Polish
-**Status:** Backlog
+## ✅ Slice 15 — Full App Polish
+**Status:** Completed (`4fff1b8`)
 
 ### Features
-- [ ] "Recurring Today" placement — move to a cleaner position (e.g. small box to the right of day date)
-- [ ] Custom Stats creation (beyond the 5 defaults) — O1
-- [ ] Templates with end-date — O2
-- [ ] "Today Summary" view — O3
+- [x] **M3: VP logo fix** — removed glow, smaller font, tighter spacing
+- [x] **O2: Templates with end-date** — backend + frontend support, ONGOING badge
+- [x] **O3: Today Summary view** — new /summary page with completion bar, slot cards, recurring tasks
+- [x] **O1: Custom Stats** — already implemented (skills page with emoji picker)
+
+### Remaining
+- [ ] "Recurring Today" placement — move to cleaner position (e.g. small box to right of day date)
 
 ---
 
 ## Misbehavior Tally
 
-| # | Slice | Issue |
-|---|-------|-------|
-| M1 | Slice 6 | Settings sub-nav (Theme/General) disappears when navigating to `/settings/dev` — no way to get back without using browser back |
-| M2 | Slice 3 | Spider chart renders nothing when all stats are 0 — could be considered fine, but noted |
-| M3 | Slice 3 | "VP" logo in top-left looks off/wrong |
-| M4 | Slice 3 | Colored border boxes around day planner (red=P5, yellow=P4, blue=P3) — inconsistent appearance |
-| M5 | Slice 3 | Page switching animations work on P5 but not P4/P3 — inconsistent |
+| # | Slice | Issue | Status |
+|---|-------|-------|--------|
+| M1 | Slice 6 | Settings sub-nav disappears on `/settings/dev` — no back nav | Open |
+| M2 | Slice 3 | Spider chart renders nothing when all stats are 0 | Open (by design) |
+| M3 | Slice 3 | VP logo looks off/wrong | **Fixed** |
+| M4 | Slice 3 | Colored border boxes inconsistent | **Fixed** |
+| M5 | Slice 3 | Page animations P4/P3 broken | **Fixed** |
 
 ---
 
@@ -287,6 +290,6 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 | # | Question | Status |
 |---|----------|--------|
-| O1 | Sollen Custom-Stats erstellt werden können? (neben den 5 Defaults) | Offen |
-| O2 | Sollen Templates einen End-Datum haben? | Offen |
-| O3 | Soll es eine "Heute zusammenfassen" Ansicht geben? | Offen |
+| O1 | Custom-Stats neben den 5 Defaults? | **Done** (already implemented) |
+| O2 | Templates mit End-Datum? | **Done** |
+| O3 | "Heute zusammenfassen" Ansicht? | **Done** |
