@@ -18,7 +18,6 @@ import { Task, Skill } from '../../models';
             <div class="skew-heading-inner">TASKS</div>
           </div>
         </div>
-        <div class="drip-divider"></div>
       </div>
 
       <!-- Tasks menu -->

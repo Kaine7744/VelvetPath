@@ -19,7 +19,6 @@ import { Day, Task } from '../../models';
           </div>
           <div class="today-date">{{ todayStr | date:'EEEE, MMMM d, y' }}</div>
         </div>
-        <div class="drip-divider"></div>
       </div>
 
       <!-- Completion bar -->

@@ -25,7 +25,6 @@ const SLOT_LABELS: Record<string, string> = {
             <div class="skew-heading-inner">RECURRING TASKS</div>
           </div>
         </div>
-        <div class="drip-divider"></div>
       </div>
 
       <!-- Recurring tasks menu -->

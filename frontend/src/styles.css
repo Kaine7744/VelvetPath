@@ -394,6 +394,50 @@ html {
   box-shadow: 5px 5px 0 #e8001a;
 }
 
+/* Skew heading — used in skills-page for theme-consistent page titles */
+.skew-heading {
+  display: inline-block;
+  transform: skewX(-8deg);
+}
+.skew-heading-inner {
+  display: inline-block;
+  transform: skewX(8deg);
+}
+
+/* Skills menu — base styles (theme overrides in P3/P4 sections) */
+.skill-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.skill-menu-item:hover {
+  background: rgba(232,0,26,0.1);
+}
+.skill-menu-icon {
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+}
+.skill-menu-name {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.skill-menu-value {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  text-shadow: 0 0 10px var(--color-glow);
+}
+
 .calling-card {
   background: #050508;
   border: 2px solid #e8001a;
@@ -645,7 +689,27 @@ html {
 /* P4: day column border = yellow top */
 :root[data-theme="p4"] .days-grid {
   border: 5px solid #f7d000;
-  border-top-width: 5px;
+}
+
+/* P4: recurring pill = smaller, subdued */
+:root[data-theme="p4"] .recurring-pill {
+  font-size: 7px !important;
+  padding: 1px 4px;
+}
+
+/* P4: skills page */
+:root[data-theme="p4"] .skill-menu-item:hover {
+  background: rgba(247,208,0,0.15);
+}
+:root[data-theme="p4"] .skill-menu-value {
+  color: #f7d000;
+  text-shadow: 0 0 10px rgba(247,208,0,0.6);
+}
+:root[data-theme="p4"] .skew-heading {
+  transform: skewX(-8deg);
+}
+:root[data-theme="p4"] .skew-heading-inner {
+  transform: skewX(8deg);
 }
 
 /* ============================================
@@ -804,6 +868,32 @@ html {
 /* P3: day column border = teal */
 :root[data-theme="p3"] .days-grid {
   border: 1px solid rgba(0,180,200,0.25);
+}
+
+/* P3: opaque column background masks slot-card shadow/filter bleed */
+:root[data-theme="p3"] .day-column {
+  background: #0a0e1a !important;
+}
+
+/* P3: recurring pill = smaller, subdued */
+:root[data-theme="p3"] .recurring-pill {
+  font-size: 6px !important;
+  padding: 1px 3px;
+}
+
+/* P3: skills page */
+:root[data-theme="p3"] .skill-menu-item:hover {
+  background: rgba(0,180,200,0.15);
+}
+:root[data-theme="p3"] .skill-menu-value {
+  color: #00b4c8;
+  text-shadow: 0 0 10px rgba(0,180,200,0.6);
+}
+:root[data-theme="p3"] .skew-heading {
+  transform: skewX(-8deg);
+}
+:root[data-theme="p3"] .skew-heading-inner {
+  transform: skewX(8deg);
 }
 
 /* ============================================

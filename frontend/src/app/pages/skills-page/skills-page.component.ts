@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
 import { SkillService } from '../../services/skill.service';
 import { Skill } from '../../models';
 import { SpiderChartComponent } from '../../components/spider-chart/spider-chart.component';
@@ -286,6 +287,7 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
 })
 export class SkillsPageComponent implements OnInit {
   private skillService = inject(SkillService);
+  private router = inject(Router);
   skills = signal<Skill[]>([]);
 
   editingId = signal<string | null>(null);
@@ -303,6 +305,13 @@ export class SkillsPageComponent implements OnInit {
 
   ngOnInit() {
     this.loadSkills();
+    // Re-fetch skills every time we navigate to this page so the spider chart
+    // reflects any level-ups that happened elsewhere (e.g. on day-view).
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd && event.urlAfterRedirects === '/skills') {
+        this.loadSkills();
+      }
+    });
   }
 
   loadSkills() {

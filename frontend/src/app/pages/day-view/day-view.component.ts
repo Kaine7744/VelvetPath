@@ -47,7 +47,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
                   @if (recurringPerDay()[day.date]?.length) {
                     <div class="day-recurring-pills">
                       @for (r of recurringPerDay()[day.date]; track r.taskId + r.slot) {
-                        <span class="recurring-dot" [title]="r.taskName + ' (' + r.slot + ')'"></span>
+                        <span class="recurring-pill" [title]="r.taskName + ' (' + r.slot + ')'">{{ r.taskName }}</span>
                       }
                     </div>
                   }
@@ -186,6 +186,9 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      min-width: 0;
+      /* opaque background masks slot-card shadow/backdrop-filter bleed */
+      background: var(--color-surface);
     }
     .day-header {
       padding: 0 0.5rem;
@@ -215,20 +218,29 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       color: var(--color-text);
     }
 
-    /* Recurring dots — in the day-meta row next to the date */
+    /* Recurring pills — in the day-meta row next to the date */
     .day-recurring-pills {
       display: flex;
       gap: 4px;
       align-items: center;
       margin-left: 4px;
+      flex-wrap: wrap;
     }
-    .recurring-dot {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
+    .recurring-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 5px;
+      border-radius: 10px;
       background: var(--color-primary);
-      opacity: 0.7;
+      color: var(--color-bg);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      opacity: 0.85;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80px;
     }
 
     .slots-wrapper {
@@ -274,7 +286,7 @@ export class DayViewComponent implements OnInit {
   onWheel(event: WheelEvent) {
     event.preventDefault();
 
-    const delta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
+    const delta = event.deltaX; // horizontal scroll only — vertical wheel scrolls the page
     if (Math.abs(delta) < 3) return;
 
     this.scrollAccumulator += delta;
@@ -295,13 +307,23 @@ export class DayViewComponent implements OnInit {
   }
 
   private triggerHaptic() {
+    // Android: Vibration API (iOS ignores this)
     try {
       (navigator as any).vibrate?.([10]);
     } catch {}
-    // Fallback: WebKit on iOS/macOS
+
+    // iOS: play silent audio buffer — user gesture triggers haptic engine
     try {
-      (window as any).webkit?.messageHandlers?.vibrate?.postMessage?.([10]);
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start();
     } catch {}
+
+    // macOS Safari: no web API for haptics without a native app wrapper
+    // (Electron, Safari Extension, or native macOS app would be required)
   }
 
   private loadDays() {

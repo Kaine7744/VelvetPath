@@ -18,9 +18,19 @@ export interface Day {
     evening: Slot;
   };
   statGrowths?: StatGrowth[];
+  statShrinkages?: StatShrinkage[];
 }
 
 export interface StatGrowth {
+  slot: string;
+  statId: string;
+  statName: string;
+  gain: number;
+  oldTier?: number;
+  newTier?: number;
+}
+
+export interface StatShrinkage {
   slot: string;
   statId: string;
   statName: string;

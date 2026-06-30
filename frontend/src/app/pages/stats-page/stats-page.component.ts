@@ -1,6 +1,9 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatService, PeriodStats } from '../../services/stat.service';
+import { CompletionRingComponent } from './completion-ring.component';
+import { TimeOfDayChartComponent } from './time-of-day-chart.component';
+import { StatGrowthChartComponent, StatGrowthData } from './stat-growth-chart.component';
 
 type Period = 'day' | 'week' | 'month' | 'year';
 
@@ -12,7 +15,7 @@ interface PopularTasks {
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CompletionRingComponent, TimeOfDayChartComponent, StatGrowthChartComponent],
   template: `
     <div class="stats-page">
       <div class="page-title">STATS</div>
@@ -30,13 +33,18 @@ interface PopularTasks {
 
       <div class="summary-row">
         <div class="summary-card completion-card">
-          <div class="summary-label">COMPLETION RATE</div>
-          <div class="summary-value primary">{{ periodStats()?.completionRate ?? 0 }}%</div>
-          <div class="summary-sub">{{ periodStats()?.completedSlots ?? 0 }}/{{ periodStats()?.totalSlots ?? 0 }} SLOTS</div>
-          <div class="slot-breakdown">
-            <span class="slot-pill morning">☀ {{ periodStats()?.bySlot?.morning?.rate ?? 0 }}%</span>
-            <span class="slot-pill afternoon">🌤 {{ periodStats()?.bySlot?.afternoon?.rate ?? 0 }}%</span>
-            <span class="slot-pill evening">🌙 {{ periodStats()?.bySlot?.evening?.rate ?? 0 }}%</span>
+          <div class="completion-header">
+            <div class="summary-label">COMPLETION RATE</div>
+          </div>
+          <div class="completion-body">
+            <app-completion-ring
+              [rateInput]="periodStats()?.completionRate ?? 0"
+              [completedInput]="periodStats()?.completedSlots ?? 0"
+              [totalInput]="periodStats()?.totalSlots ?? 0"
+            />
+            <div class="tod-chart-wrapper">
+              <app-time-of-day-chart [bySlot]="periodStats()?.bySlot ?? null" />
+            </div>
           </div>
         </div>
 
@@ -62,8 +70,18 @@ interface PopularTasks {
       <!-- Popular Tasks -->
       <div class="popular-tasks-card">
         <div class="popular-header">
-          <div class="popular-col-label">MOST COMPLETED THIS {{ activePeriod().toUpperCase() }}</div>
-          <div class="popular-col-label right">LEAST COMPLETED</div>
+          <div class="popular-header-top">
+            <div class="popular-col-label">MOST COMPLETED THIS {{ activePeriod().toUpperCase() }}</div>
+            <div class="popular-col-label right">LEAST COMPLETED</div>
+          </div>
+          <div class="popular-limit-row">
+            @for (n of limitOptions; track n) {
+              <button
+                class="limit-btn"
+                [class.active]="popularLimit() === n"
+                (click)="setPopularLimit(n)">{{ n }}</button>
+            }
+          </div>
         </div>
         <div class="popular-body">
           <div class="popular-col">
@@ -93,6 +111,14 @@ interface PopularTasks {
           </div>
         </div>
       </div>
+
+      <!-- Stat Growth Chart (week/month/year only) -->
+      @if (activePeriod() !== 'day') {
+        <div class="growth-card">
+          <div class="summary-label">STAT GROWTH — {{ activePeriod().toUpperCase() }}</div>
+          <app-stat-growth-chart [dataInput]="statGrowth()" />
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -196,6 +222,18 @@ interface PopularTasks {
       background: color-mix(in srgb, var(--color-text) 8%, transparent);
       border-radius: 2px;
     }
+    .completion-header {
+      margin-bottom: 0.75rem;
+    }
+    .completion-body {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .tod-chart-wrapper {
+      flex: 1;
+      min-width: 0;
+    }
     .gains-card { min-width: 180px; }
     .gain-row {
       display: flex;
@@ -225,11 +263,42 @@ interface PopularTasks {
       padding: 1.5rem;
     }
     .popular-header {
-      display: flex;
-      justify-content: space-between;
       margin-bottom: 1rem;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+    }
+    .popular-header-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .popular-limit-row {
+      display: flex;
+      gap: 0.25rem;
+    }
+    .limit-btn {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      opacity: 0.5;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+    }
+    .limit-btn:hover {
+      opacity: 0.8;
+      border-color: var(--color-primary);
+    }
+    .limit-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-bg);
+      opacity: 1;
     }
     .popular-col-label {
       font-family: var(--font-display);
@@ -293,6 +362,15 @@ interface PopularTasks {
       color: var(--color-text-dim);
       opacity: 0.4;
     }
+    /* Stat Growth */
+    .growth-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      padding: 1.5rem;
+    }
+    .growth-card .summary-label {
+      margin-bottom: 1rem;
+    }
   `]
 })
 export class StatsPageComponent implements OnInit {
@@ -302,18 +380,33 @@ export class StatsPageComponent implements OnInit {
   popularTasks = signal<PopularTasks | null>(null);
   activePeriod = signal<Period>('week');
   periods: Period[] = ['day', 'week', 'month', 'year'];
+  popularLimit = signal(3);
+  limitOptions = [3, 5, 10];
 
   todayGains = computed(() => this.periodStats()?.todayGains ?? []);
+
+  statGrowth = signal<StatGrowthData | null>(null);
 
   ngOnInit() {
     this.statService.getStats().subscribe(stats => this.stats.set(stats));
     this.loadPeriodStats('week');
+    this.loadPopularTasks('week');
   }
 
   setPeriod(period: Period) {
     this.activePeriod.set(period);
     this.loadPeriodStats(period);
     this.loadPopularTasks(period);
+    if (period !== 'day') {
+      this.loadStatGrowth(period);
+    } else {
+      this.statGrowth.set(null);
+    }
+  }
+
+  setPopularLimit(limit: number) {
+    this.popularLimit.set(limit);
+    this.loadPopularTasks(this.activePeriod());
   }
 
   private loadPeriodStats(period: Period) {
@@ -321,9 +414,16 @@ export class StatsPageComponent implements OnInit {
   }
 
   private loadPopularTasks(period: Period) {
-    this.statService.getPopularTasks(period).subscribe({
+    this.statService.getPopularTasks(period, this.popularLimit()).subscribe({
       next: result => this.popularTasks.set(result),
       error: err => console.error('Failed to load popular tasks:', err)
+    });
+  }
+
+  private loadStatGrowth(period: Period) {
+    this.statService.getStatGrowth(period).subscribe({
+      next: result => this.statGrowth.set(result),
+      error: err => console.error('Failed to load stat growth:', err)
     });
   }
 }

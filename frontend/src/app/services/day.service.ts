@@ -34,6 +34,19 @@ export class DayService {
               }
             }
           }
+          if (day.statShrinkages) {
+            for (const shrinkage of day.statShrinkages) {
+              if (shrinkage.oldTier !== undefined && shrinkage.newTier !== undefined && shrinkage.oldTier !== shrinkage.newTier) {
+                this.statService.emitTierDown({
+                  statId: shrinkage.statId,
+                  statName: shrinkage.statName,
+                  oldTier: shrinkage.oldTier,
+                  newTier: shrinkage.newTier,
+                  loss: Math.abs(shrinkage.gain),
+                });
+              }
+            }
+          }
           observer.next(day);
           observer.complete();
         },

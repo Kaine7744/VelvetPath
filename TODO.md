@@ -268,9 +268,7 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 - [x] **O2: Templates with end-date** — backend + frontend support, ONGOING badge
 - [x] **O3: Today Summary view** — new /summary page with completion bar, slot cards, recurring tasks
 - [x] **O1: Custom Stats** — already implemented (skills page with emoji picker)
-
-### Remaining
-- [ ] "Recurring Today" placement — move to cleaner position (e.g. small box to right of day date)
+- [x] **Recurring Today placement** — moved to inside day-column header next to date (Slices 16–18)
 
 ---
 
@@ -354,3 +352,43 @@ Restored 3-day side-by-side grid with proper day navigation via ← → buttons.
 | O1 | Custom-Stats neben den 5 Defaults? | **Done** (already implemented) |
 | O2 | Templates mit End-Datum? | **Done** |
 | O3 | "Heute zusammenfassen" Ansicht? | **Done** |
+
+---
+
+## Research: macOS Haptic Feedback for Web Apps
+
+**Summary:** There is no web API for haptic feedback on macOS Safari. Apple exposes `NSHapticFeedbackPerformer` / `CoreHaptics` only to native apps, not to JavaScript running in a browser.
+
+### What Works
+
+| Platform | Method | Status |
+|----------|--------|--------|
+| Android | `navigator.vibrate([10])` | ✅ Works |
+| iOS Safari 13+ | Silent AudioContext buffer playback | ✅ Works — user gesture triggers haptic engine |
+| macOS Safari | Any web API | ❌ **No API exists** |
+| macOS Chrome/Firefox | `navigator.vibrate()` | ❌ Not supported on desktop |
+
+### Sources
+
+- [MDN: Vibration API](https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API) — "desktop browsers do not support the Vibration API"
+- [Electron issue #7994](https://github.com/electron/electron/issues/7994) — macOS haptic feedback feature request (addressed for Electron/native only)
+- Apple `NSHapticFeedbackPerformer` — native macOS API, not exposed to web content
+
+### Options for VelvetPath
+
+**Option A — Do Nothing (current):** Android ✅, iOS ✅, macOS none. Acceptable for a primarily mobile-used app.
+
+**Option B — Electron App:** Package VelvetPath as an Electron app → enables `NSHapticFeedbackPerformer` via native module. Significant setup; converts from web app to desktop app.
+
+**Option C — Accept Limitation:** Document as known limitation. Haptics on macOS requires a native app wrapper and is out of scope for the web build.
+
+### Decision
+
+**Option A** — Keep current implementation. Android + iOS haptics work. Document here for reference. Revisit if/when an Electron build is considered.
+
+### Changes Made (Slice 18 follow-up)
+
+- `triggerHaptic()` in `day-view.component.ts` now uses `AudioContext` buffer trick for iOS (was using a non-existent `webkit.messageHandlers` bridge)
+- Horizontal scroll only — `deltaY` dropped from wheel handler
+- Recurring pills now show task names (not dots)
+

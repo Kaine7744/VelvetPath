@@ -231,12 +231,14 @@ const dbModule = {
     ]);
     saveDb();
 
-    // Stat growth: when a slot transitions to completed, grow the associated stat
+    // Stat growth/shrinkage: handle both completion (grow) and undo (shrink) transitions
     const statGrowths = [];
+    const statShrinkages = [];
     const allTasks = await this.getAllTasks();
     const tasksMap = Object.fromEntries(allTasks.map(t => [t.id, t]));
     for (const [slotName, slot, prevSlot] of [['morning', morning, existing.morning], ['afternoon', afternoon, existing.afternoon], ['evening', evening, existing.evening]]) {
       if (slot.completed && !prevSlot.completed && slot.taskId) {
+        // Slot transitioned to completed → award stat points
         const task = tasksMap[slot.taskId];
         if (task && task.statId) {
           const result = await this.growStat(task.statId, task.statGain);
@@ -244,9 +246,18 @@ const dbModule = {
             statGrowths.push({ slot: slotName, statId: task.statId, statName: task.statName, gain: result.gain, oldTier: result.oldTier, newTier: result.newTier });
           }
         }
+      } else if (!slot.completed && prevSlot.completed && prevSlot.taskId) {
+        // Slot transitioned to uncompleted (undo) → remove stat points
+        const task = tasksMap[prevSlot.taskId];
+        if (task && task.statId) {
+          const result = await this.shrinkStat(task.statId, task.statGain);
+          if (result && result.gain < 0) {
+            statShrinkages.push({ slot: slotName, statId: task.statId, statName: task.statName, gain: result.gain, oldTier: result.oldTier, newTier: result.newTier });
+          }
+        }
       }
     }
-    return { statGrowths };
+    return { statGrowths, statShrinkages };
   },
 
   async growStat(statId, amount) {
@@ -263,6 +274,22 @@ const dbModule = {
     db.run('UPDATE skills SET currentValue = ? WHERE id = ?', [newValue, statId]);
     saveDb();
     return { gain: amount, oldValue: row.currentValue, newValue, oldTier, newTier };
+  },
+
+  async shrinkStat(statId, amount) {
+    if (!statId || !amount) return { gain: 0, oldValue: 0, newValue: 0, oldTier: 1, newTier: 1 };
+    await getDb();
+    const stmt = db.prepare('SELECT currentValue FROM skills WHERE id = ?');
+    stmt.bind([statId]);
+    if (!stmt.step()) { stmt.free(); return { gain: 0, oldValue: 0, newValue: 0, oldTier: 1, newTier: 1 }; }
+    const row = stmt.getAsObject();
+    stmt.free();
+    const oldTier = Math.floor(row.currentValue / 100) + 1;
+    const newValue = Math.max(0, row.currentValue - amount);
+    const newTier = Math.floor(newValue / 100) + 1;
+    db.run('UPDATE skills SET currentValue = ? WHERE id = ?', [newValue, statId]);
+    saveDb();
+    return { gain: -amount, oldValue: row.currentValue, newValue, oldTier, newTier };
   },
 
   async getDayRecord(date) {
@@ -554,7 +581,46 @@ const dbModule = {
     return streak;
   },
 
-  async getPopularTasks(period) {
+  async getStatGrowth(period, { startDate, endDate } = {}) {
+    const { start, end } = this.computeDateRange(period, startDate, endDate);
+    const days = await this.getDaysRange(start, end);
+    const allTasks = await this.getAllTasks();
+
+    // Build statId -> { name, color } map from tasks that have stats
+    const statMap = {}; // statId -> { name, values: number[] }
+    for (const task of allTasks) {
+      if (task.statId && !statMap[task.statId]) {
+        statMap[task.statId] = { name: task.statName || task.name, values: [] };
+      }
+    }
+
+    const statIds = Object.keys(statMap);
+    const accumulators = {};
+    statIds.forEach(id => { accumulators[id] = 0; });
+
+    for (const day of days) {
+      for (const slotName of ['morning', 'afternoon', 'evening']) {
+        const slot = day[slotName];
+        if (slot.status === 'set' && slot.completed && slot.taskId) {
+          const task = allTasks.find(t => t.id === slot.taskId);
+          if (task && task.statId && accumulators[task.statId] !== undefined) {
+            accumulators[task.statId] += task.statGain || 0;
+          }
+        }
+      }
+      // Snapshot end-of-day cumulative values
+      for (const statId of statIds) {
+        statMap[statId].values.push(accumulators[statId]);
+      }
+    }
+
+    return {
+      dates: days.map(d => d.date),
+      stats: statMap,
+    };
+  },
+
+  async getPopularTasks(period, limit = 3) {
     const { start, end } = this.computeDateRange(period);
     const days = await this.getDaysRange(start, end);
     const taskCounts = {};
@@ -575,8 +641,8 @@ const dbModule = {
       .map(([taskId, count]) => ({ taskId, taskName: tasksMap[taskId]?.name || taskId, count }))
       .sort((a, b) => b.count - a.count);
 
-    const mostUsed = entries.slice(0, 3);
-    const leastUsed = entries.slice(-3).reverse();
+    const mostUsed = entries.slice(0, limit);
+    const leastUsed = entries.slice(-limit).reverse();
     return { mostUsed, leastUsed };
   },
 
