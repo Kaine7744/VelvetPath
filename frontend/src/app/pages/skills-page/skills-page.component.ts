@@ -2,12 +2,11 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SkillService } from '../../services/skill.service';
 import { Skill } from '../../models';
-import { SpiderChartComponent } from '../../components/spider-chart/spider-chart.component';
 
 @Component({
   selector: 'app-skills-page',
   standalone: true,
-  imports: [CommonModule, SpiderChartComponent],
+  imports: [CommonModule],
   template: `
     <div class="skills-page">
       <!-- Page header — calling card style -->
@@ -16,11 +15,6 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
         <div class="skew-heading">
           <div class="skew-heading-inner">SKILLS</div>
         </div>
-      </div>
-
-      <!-- Radar chart -->
-      <div class="p5-panel hard-shadow chart-panel">
-        <app-spider-chart [skills]="skills()" />
       </div>
 
       <!-- Skills list — P5 vertical menu -->
@@ -103,14 +97,6 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
     }
     .header-card {
       margin-bottom: 16px;
-    }
-    .chart-panel {
-      margin-bottom: 16px;
-      background: var(--color-card);
-      border-left: 6px solid var(--color-primary);
-      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-      box-shadow: var(--card-shadow);
-      padding: 20px;
     }
     .skills-menu {
       overflow: hidden;
