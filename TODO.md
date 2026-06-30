@@ -315,21 +315,20 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 ---
 
-## ✅ Slice 18 — Infinite Horizontal Day Scroll (iPhone Timer Wheel)
-**Status:** Completed (`8d5422f`)
+## ✅ Slice 18 — 3-Day Grid with Day Navigation
+**Status:** Completed (`2f22ed5`)
 
 ### Overview
-Native horizontal scroll IS the navigation. Scroll through days like an iPhone timer picker — new days load infinitely as you approach the edges.
+Restored 3-day side-by-side grid with proper day navigation via ← → buttons. Recurring pills shown only for the center (today) column.
 
 ### Features
-- [x] `onScroll()`: calculates `centerIndex` from `scrollLeft / columnWidth`
-- [x] `loadMoreDays('forward'|'backward')`: fetches next/prev 3-day batches when approaching edges
-- [x] `centerIndex` signal tracks which column is centered; `centerDate` derived from it
-- [x] Recurring pills: only shown for center day (`i === centerIndex()`)
-- [x] `← →` buttons: `scrollBy(±1 column)`, no date mutation — scroll handler does all state updates
-- [x] `scrollToToday()`: finds today in loaded days, scrolls to it; reloads if not present
-- [x] `reloadDay(date)`: single-day reload via `getDay(date)` after slot updates (no full `loadDays()`)
-- [x] 7 days loaded initially (today ± 3), more fetched on scroll
+- [x] 3-column CSS grid: `repeat(3, minmax(220px, 1fr))` with `gap: 1.5rem`
+- [x] `previousDay()` / `nextDay()`: shift the 3-day window by ±1, reload via `getDays(center-1, center+1)`
+- [x] `goToToday()`: reset `centerDate` to today, reload
+- [x] Recurring pills: shown only for center column (`i === 1`), loaded via `getTemplatesForDate(centerDate)`
+- [x] `getCenterDateLabel()`: always reads from `daysData[1]` (center day)
+- [x] Removed infinite loading, ResizeObserver, scroll handler (scroll is decorative, buttons do navigation)
+- [x] `loadDays()`: loads exactly 3 days `[center-1, center, center+1]`
 
 ### Files
 - `frontend/src/app/pages/day-view/day-view.component.ts`
