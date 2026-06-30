@@ -221,7 +221,7 @@ a {
    SCROLLBAR
    ============================================ */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -232,6 +232,11 @@ a {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
+}
+
+/* Prevent horizontal scroll */
+html {
+  overflow-x: hidden;
 }
 
 /* ============================================

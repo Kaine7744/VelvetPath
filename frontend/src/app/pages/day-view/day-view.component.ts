@@ -17,7 +17,6 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <div class="title-wrap skew-outer">
           <h1 class="page-title">DAY PLANNER</h1>
         </div>
-        <div class="drip-divider"></div>
       </div>
 
       <div class="day-nav">
@@ -52,47 +51,49 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         </div>
       }
 
-      <div class="days-grid">
-        @for (day of daysData(); track day.date) {
-          <div class="day-column">
-            <div class="day-header" [class.today]="isToday(day.date)">
-              <span class="day-label">{{ day.date | date:'EEE' }}</span>
-              <span class="day-num">{{ day.date | date:'d' }}</span>
-            </div>
-            <div class="slots-wrapper skew-outer">
-              <div class="slots-inner">
-                @if (morningEnabled()) {
+      <div class="days-scroll-container">
+        <div class="days-grid">
+          @for (day of daysData(); track day.date) {
+            <div class="day-column">
+              <div class="day-header" [class.today]="isToday(day.date)">
+                <span class="day-label">{{ day.date | date:'EEE' }}</span>
+                <span class="day-num">{{ day.date | date:'d' }}</span>
+              </div>
+              <div class="slots-wrapper skew-outer">
+                <div class="slots-inner">
+                  @if (morningEnabled()) {
+                    <app-slot-card
+                      [slot]="day.slots.morning"
+                      slotName="Morning"
+                      [tasks]="tasks()"
+                      (taskSelected)="onSlotTaskSelected(day.date, 'morning', $event)"
+                      (completed)="onSlotCompleted(day.date, 'morning', $event)"
+                      (uncompleted)="onSlotUncompleted(day.date, 'morning', $event)"
+                    />
+                  }
                   <app-slot-card
-                    [slot]="day.slots.morning"
-                    slotName="Morning"
+                    [slot]="day.slots.afternoon"
+                    slotName="Afternoon"
                     [tasks]="tasks()"
-                    (taskSelected)="onSlotTaskSelected(day.date, 'morning', $event)"
-                    (completed)="onSlotCompleted(day.date, 'morning', $event)"
-                    (uncompleted)="onSlotUncompleted(day.date, 'morning', $event)"
+                    (taskSelected)="onSlotTaskSelected(day.date, 'afternoon', $event)"
+                    (completed)="onSlotCompleted(day.date, 'afternoon', $event)"
+                    (uncompleted)="onSlotUncompleted(day.date, 'afternoon', $event)"
                   />
-                }
-                <app-slot-card
-                  [slot]="day.slots.afternoon"
-                  slotName="Afternoon"
-                  [tasks]="tasks()"
-                  (taskSelected)="onSlotTaskSelected(day.date, 'afternoon', $event)"
-                  (completed)="onSlotCompleted(day.date, 'afternoon', $event)"
-                  (uncompleted)="onSlotUncompleted(day.date, 'afternoon', $event)"
-                />
-                @if (eveningEnabled()) {
-                  <app-slot-card
-                    [slot]="day.slots.evening"
-                    slotName="Evening"
-                    [tasks]="tasks()"
-                    (taskSelected)="onSlotTaskSelected(day.date, 'evening', $event)"
-                    (completed)="onSlotCompleted(day.date, 'evening', $event)"
-                    (uncompleted)="onSlotUncompleted(day.date, 'evening', $event)"
-                  />
-                }
+                  @if (eveningEnabled()) {
+                    <app-slot-card
+                      [slot]="day.slots.evening"
+                      slotName="Evening"
+                      [tasks]="tasks()"
+                      (taskSelected)="onSlotTaskSelected(day.date, 'evening', $event)"
+                      (completed)="onSlotCompleted(day.date, 'evening', $event)"
+                      (uncompleted)="onSlotUncompleted(day.date, 'evening', $event)"
+                    />
+                  }
+                </div>
               </div>
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
     </div>
   `,
@@ -176,13 +177,20 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       color: var(--color-primary);
       box-shadow: 3px 3px 0 var(--color-primary);
     }
+    .days-scroll-container {
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+    }
     .days-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
       gap: 1.5rem;
       border: var(--card-border-width) var(--card-border-style) var(--color-primary);
       padding: 1rem;
       background: var(--color-surface);
+      scroll-snap-align: start;
     }
     .day-column {
       display: flex;
@@ -226,7 +234,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
 
     /* Recurring section */
     .recurring-section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       padding: 12px 16px;
       border: 1px dashed color-mix(in srgb, var(--color-primary) 40%, transparent);
       background: color-mix(in srgb, var(--color-card) 60%, transparent);
@@ -246,14 +254,16 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     .recurring-pill {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
+      gap: 8px;
+      padding: 6px 12px;
       border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+      border-left: 3px solid var(--color-primary);
       background: color-mix(in srgb, var(--color-primary) 10%, transparent);
     }
     .recurring-pill-slot {
       font-family: var(--font-display);
-      font-size: 0.5rem;
+      font-size: 0.65rem;
+      font-weight: 700;
       letter-spacing: 0.1em;
       color: var(--color-primary);
     }
