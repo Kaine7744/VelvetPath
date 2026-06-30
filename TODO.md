@@ -274,6 +274,17 @@ Wire up real data for the existing `GET /api/statistics/:period` stub and extend
 
 ---
 
+## ✅ Slice 16 — Day Planner UI Polish
+**Status:** Completed (`0e1ed64`)
+
+### Features
+- [x] Fix horizontal scrollbar reflow — base scrollbar 5px→6px, overflow-x:hidden on html
+- [x] Remove drip-divider from day planner header
+- [x] Make days-grid horizontally scrollable with scroll-snap
+- [x] Improve recurring pill styling — larger slot badges (0.65rem), left-border accent
+
+---
+
 ## Misbehavior Tally
 
 | # | Slice | Issue | Status |
