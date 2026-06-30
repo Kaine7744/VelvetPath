@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, inject, signal, AfterViewInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
@@ -36,7 +36,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <div class="days-scroll-container" #scrollContainer (wheel)="onWheel($event)">
+      <div class="days-scroll-container" (wheel)="onWheel($event)">
         <div class="days-grid">
           @for (day of daysData(); track day.date; let i = $index) {
             <div class="day-column">
@@ -175,9 +175,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       box-shadow: 3px 3px 0 var(--color-primary);
     }
     .days-scroll-container {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 8px;
+      /* no overflow scrollbar — wheel events only */
     }
     .days-grid {
       display: grid;
@@ -265,9 +263,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
   `]
 })
-export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
-
+export class DayViewComponent implements OnInit {
   private dayService = inject(DayService);
   private taskService = inject(TaskService);
   private templateService = inject(TemplateService);
@@ -280,8 +276,8 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   morningEnabled = signal(true);
   eveningEnabled = signal(true);
 
-  private columnWidth = 236;
-  private isScrolling = false;
+  private scrollAccumulator = 0;
+  private readonly DAY_THRESHOLD = 30; // px before day changes
 
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
@@ -294,41 +290,31 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadDays();
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => this.measureColumnWidth(), 0);
-  }
-
-  ngOnDestroy() {}
-
-  private measureColumnWidth() {
-    if (!this.scrollContainer) return;
-    const el = this.scrollContainer.nativeElement;
-    const rect = el.getBoundingClientRect();
-    // container width minus left+right padding (1rem each = 32px), divide by 3 columns minus 2 gaps (1.5rem each = 48px)
-    const usableWidth = rect.width - 32 - 48;
-    this.columnWidth = usableWidth / 3;
-    el.scrollLeft = this.columnWidth;
-  }
-
   onWheel(event: WheelEvent) {
     event.preventDefault();
 
-    const delta = event.deltaX || event.deltaY;
-    if (Math.abs(delta) < 5) return; // ignore tiny movements
+    // Horizontal delta preferred, fall back to vertical
+    const delta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
+    if (Math.abs(delta) < 3) return; // ignore very small movements
 
-    if (this.isScrolling) return;
-    this.isScrolling = true;
+    this.scrollAccumulator += delta;
 
-    if (delta > 0) {
-      this.centerDate.set(this.offsetDate(this.centerDate(), 1));
-    } else {
-      this.centerDate.set(this.offsetDate(this.centerDate(), -1));
+    if (Math.abs(this.scrollAccumulator) >= this.DAY_THRESHOLD) {
+      const direction = this.scrollAccumulator > 0 ? 1 : -1;
+      this.scrollAccumulator = 0; // reset accumulator
+
+      if (direction > 0) {
+        this.centerDate.set(this.offsetDate(this.centerDate(), 1));
+      } else {
+        this.centerDate.set(this.offsetDate(this.centerDate(), -1));
+      }
+
+      this.loadDays();
+      navigator.vibrate?.([10]); // haptic — silently ignored on unsupported devices
     }
-
-    this.loadDays();
   }
 
-  private loadDays(onDone?: () => void) {
+  private loadDays() {
     const center = this.centerDate();
     const start = this.offsetDate(center, -1);
     const end = this.offsetDate(center, 1);
@@ -336,13 +322,6 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(days => {
         this.daysData.set(days);
         this.loadRecurringForDay(this.toDateString(center));
-        setTimeout(() => {
-          if (this.scrollContainer) {
-            this.scrollContainer.nativeElement.scrollLeft = this.columnWidth;
-          }
-          this.isScrolling = false;
-          onDone?.();
-        }, 0);
       });
   }
 
@@ -360,24 +339,21 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   previousDay() {
-    if (this.isScrolling) return;
-    this.isScrolling = true;
     this.centerDate.set(this.offsetDate(this.centerDate(), -1));
     this.loadDays();
+    navigator.vibrate?.([10]);
   }
 
   nextDay() {
-    if (this.isScrolling) return;
-    this.isScrolling = true;
     this.centerDate.set(this.offsetDate(this.centerDate(), 1));
     this.loadDays();
+    navigator.vibrate?.([10]);
   }
 
   goToToday() {
-    if (this.isScrolling) return;
-    this.isScrolling = true;
     this.centerDate.set(new Date());
     this.loadDays();
+    navigator.vibrate?.([10]);
   }
 
   isToday(dateStr: string): boolean {
