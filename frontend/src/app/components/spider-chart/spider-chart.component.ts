@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnDestroy, ElementRef, ViewChild, AfterViewInit, input, SimpleChanges } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ElementRef, ViewChild, input, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, RadialLinearScale, ChartDataset, RadarController, PointElement, LineElement } from 'chart.js';
 import { Skill } from '../../models';
@@ -27,26 +27,31 @@ Chart.register(RadialLinearScale, RadarController, PointElement, LineElement);
     }
   `]
 })
-export class SpiderChartComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class SpiderChartComponent implements AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
   skills = input<Skill[]>([]);
 
   private chart: Chart | null = null;
   private initialized = false;
 
+  constructor() {
+    // effect() tracks the skills signal — fires whenever skills() changes,
+    // unlike ngOnChanges which doesn't fire for signal inputs
+    effect(() => {
+      const _ = this.skills();
+      if (this.initialized) {
+        if (this.chart) {
+          this.updateChart();
+        } else {
+          this.createChart();
+        }
+      }
+    });
+  }
+
   ngAfterViewInit() {
     this.initialized = true;
     this.createChart();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['skills'] && this.initialized) {
-      if (this.chart) {
-        this.updateChart();
-      } else {
-        this.createChart();
-      }
-    }
   }
 
   ngOnDestroy() {
