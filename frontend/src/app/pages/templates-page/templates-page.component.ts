@@ -46,6 +46,11 @@ const SLOT_LABELS: Record<string, string> = {
                         <span class="day-pill" [class.active]="true">{{ DAY_SHORT[d] }}</span>
                       }
                     </div>
+                    @if (template.endDate) {
+                      <span class="end-date-label">→ {{ template.endDate }}</span>
+                    } @else {
+                      <span class="end-date-label ongoing">ONGOING</span>
+                    }
                   </div>
                 </div>
                 <div class="recurring-actions">
@@ -97,6 +102,14 @@ const SLOT_LABELS: Record<string, string> = {
                     }
                   </div>
                 </div>
+                <div class="edit-row">
+                  <label class="edit-label">END DATE</label>
+                  <input type="date" class="p5-input end-date-input"
+                    [value]="editEndDate()"
+                    (input)="editEndDate.set($any($event.target).value)"
+                    placeholder="Leave empty for ongoing" />
+                  <span class="end-date-hint">Empty = ongoing</span>
+                </div>
                 <div class="edit-actions">
                   <button class="p5-btn p5-btn-confirm" (click)="saveEdit()">CONFIRM</button>
                   <button class="p5-btn p5-btn-cancel" (click)="cancelEdit()">ESCAPE</button>
@@ -144,6 +157,14 @@ const SLOT_LABELS: Record<string, string> = {
                   </button>
                 }
               </div>
+            </div>
+            <div class="edit-row">
+              <label class="edit-label">END DATE</label>
+              <input type="date" class="p5-input end-date-input"
+                [value]="newEndDate()"
+                (input)="newEndDate.set($any($event.target).value)"
+                placeholder="Leave empty for ongoing" />
+              <span class="end-date-hint">Empty = ongoing</span>
             </div>
             <div class="edit-actions">
               <button class="p5-btn p5-btn-confirm" (click)="addTemplate()">CREATE</button>
@@ -264,6 +285,17 @@ const SLOT_LABELS: Record<string, string> = {
       background: var(--color-primary);
       color: #fff;
     }
+    .end-date-label {
+      font-family: var(--font-display);
+      font-size: 0.5rem;
+      letter-spacing: 0.1em;
+      color: var(--color-text-dim);
+      padding: 2px 6px;
+    }
+    .end-date-label.ongoing {
+      color: var(--color-primary);
+      opacity: 0.7;
+    }
     .recurring-actions {
       display: flex;
       align-items: center;
@@ -353,6 +385,20 @@ const SLOT_LABELS: Record<string, string> = {
       display: flex;
       gap: 8px;
       margin-top: 8px;
+    }
+    .end-date-input {
+      max-width: 160px;
+      font-size: 0.7rem;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      padding: 4px 8px;
+    }
+    .end-date-hint {
+      font-family: var(--font-display);
+      font-size: 0.5rem;
+      letter-spacing: 0.1em;
+      color: var(--color-text-dim);
     }
 
     /* Toggle switch */
@@ -462,11 +508,13 @@ export class TemplatesPageComponent implements OnInit {
   editTaskId = signal('');
   editSlot = signal<'morning' | 'afternoon' | 'evening'>('morning');
   editDays = signal<number[]>([]);
+  editEndDate = signal('');
 
   addingRecurring = signal(false);
   newTaskId = signal('');
   newSlot = signal<'morning' | 'afternoon' | 'evening'>('morning');
   newDays = signal<number[]>([]);
+  newEndDate = signal('');
 
   readonly DAY_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S', 'S'];
   readonly SLOT_LABELS = SLOT_LABELS;
@@ -504,6 +552,7 @@ export class TemplatesPageComponent implements OnInit {
     this.editTaskId.set(t.taskId);
     this.editSlot.set(t.slot);
     this.editDays.set([...t.daysOfWeek]);
+    this.editEndDate.set(t.endDate || '');
     this.addingRecurring.set(false);
   }
 
@@ -512,6 +561,7 @@ export class TemplatesPageComponent implements OnInit {
     this.editTaskId.set('');
     this.editSlot.set('morning');
     this.editDays.set([]);
+    this.editEndDate.set('');
   }
 
   saveEdit() {
@@ -522,7 +572,8 @@ export class TemplatesPageComponent implements OnInit {
     this.templateService.updateTemplate(id, {
       taskId: this.editTaskId(),
       slot: this.editSlot(),
-      daysOfWeek: this.editDays()
+      daysOfWeek: this.editDays(),
+      endDate: this.editEndDate() || null
     }).subscribe({
       next: () => { this.loadTemplates(); this.cancelEdit(); },
       error: err => console.error('Failed to update template:', err)
@@ -552,13 +603,15 @@ export class TemplatesPageComponent implements OnInit {
     this.templateService.createTemplate({
       taskId: this.newTaskId(),
       slot: this.newSlot(),
-      daysOfWeek: this.newDays()
+      daysOfWeek: this.newDays(),
+      endDate: this.newEndDate() || null
     }).subscribe({
       next: () => {
         this.loadTemplates();
         this.newTaskId.set('');
         this.newSlot.set('morning');
         this.newDays.set([]);
+        this.newEndDate.set('');
         this.addingRecurring.set(false);
       },
       error: err => console.error('Failed to create template:', err)

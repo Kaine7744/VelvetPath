@@ -129,7 +129,7 @@ const dbModule = {
 
     // Check if day should be auto-populated from templates
     const dayOfWeek = new Date(date).getDay();
-    const templates = await this.getTemplatesForDay(dayOfWeek);
+    const templates = await this.getTemplatesForDay(dayOfWeek, date);
     return this.createDayFromTemplates(date, templates);
   },
 
@@ -150,15 +150,19 @@ const dbModule = {
     return day;
   },
 
-  async getTemplatesForDay(dayOfWeek) {
+  async getTemplatesForDay(dayOfWeek, date) {
     await getDb();
     const templates = [];
-    const stmt = db.prepare(`
+    // date is YYYY-MM-DD — filter: endDate IS NULL OR endDate >= date
+    const sql = `
       SELECT t.*, tk.name as taskName
       FROM templates t
       JOIN tasks tk ON t.taskId = tk.id
       WHERE t.enabled = 1
-    `);
+        AND (t.endDate IS NULL OR t.endDate >= ?)
+    `;
+    const stmt = db.prepare(sql);
+    stmt.bind([date || '']);
     while (stmt.step()) {
       const t = stmt.getAsObject();
       const days = t.daysOfWeek ? t.daysOfWeek.split(',').map(Number) : [];
@@ -179,7 +183,7 @@ const dbModule = {
 
     // Apply templates to fill gaps in raw existing (for slots with no explicit value)
     const dayOfWeek = new Date(date).getDay();
-    const templates = await this.getTemplatesForDay(dayOfWeek);
+    const templates = await this.getTemplatesForDay(dayOfWeek, date);
     const templateMap = {};
     for (const t of templates) {
       templateMap[t.slot] = t.taskId;
@@ -385,17 +389,17 @@ const dbModule = {
     return templates;
   },
 
-  async createTemplate({ taskId, slot, daysOfWeek, enabled = true }) {
+  async createTemplate({ taskId, slot, daysOfWeek, enabled = true, endDate = null }) {
     await getDb();
     const id = generateId();
-    db.run(`INSERT INTO templates (id, taskId, slot, daysOfWeek, enabled) VALUES (?, ?, ?, ?, ?)`, [
-      id, taskId, slot, daysOfWeek.join(','), enabled ? 1 : 0
+    db.run(`INSERT INTO templates (id, taskId, slot, daysOfWeek, enabled, endDate) VALUES (?, ?, ?, ?, ?, ?)`, [
+      id, taskId, slot, daysOfWeek.join(','), enabled ? 1 : 0, endDate || null
     ]);
     saveDb();
-    return { id, taskId, slot, daysOfWeek, enabled };
+    return { id, taskId, slot, daysOfWeek, enabled, endDate };
   },
 
-  async updateTemplate(id, { enabled, daysOfWeek, slot, taskId }) {
+  async updateTemplate(id, { enabled, daysOfWeek, slot, taskId, endDate }) {
     await getDb();
     const updates = [];
     const values = [];
@@ -403,6 +407,7 @@ const dbModule = {
     if (daysOfWeek !== undefined) { updates.push('daysOfWeek = ?'); values.push(daysOfWeek.join(',')); }
     if (slot !== undefined) { updates.push('slot = ?'); values.push(slot); }
     if (taskId !== undefined) { updates.push('taskId = ?'); values.push(taskId); }
+    if (endDate !== undefined) { updates.push('endDate = ?'); values.push(endDate || null); }
     values.push(id);
     db.run(`UPDATE templates SET ${updates.join(', ')} WHERE id = ?`, values);
     saveDb();

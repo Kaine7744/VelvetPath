@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 // POST /api/templates
 router.post('/', async (req, res) => {
   try {
-    const { taskId, slot, daysOfWeek, enabled } = req.body;
-    const template = await db.createTemplate({ taskId, slot, daysOfWeek, enabled });
+    const { taskId, slot, daysOfWeek, enabled, endDate } = req.body;
+    const template = await db.createTemplate({ taskId, slot, daysOfWeek, enabled, endDate });
     res.json(template);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -27,8 +27,8 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { enabled, daysOfWeek, slot, taskId } = req.body;
-    await db.updateTemplate(id, { enabled, daysOfWeek, slot, taskId });
+    const { enabled, daysOfWeek, slot, taskId, endDate } = req.body;
+    await db.updateTemplate(id, { enabled, daysOfWeek, slot, taskId, endDate });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -40,7 +40,7 @@ router.get('/for-day/:date', async (req, res) => {
   try {
     const { date } = req.params;
     const dayOfWeek = new Date(date).getDay();
-    const templates = await db.getTemplatesForDay(dayOfWeek);
+    const templates = await db.getTemplatesForDay(dayOfWeek, date);
     const result = templates.map(t => ({
       slot: t.slot,
       taskId: t.taskId,

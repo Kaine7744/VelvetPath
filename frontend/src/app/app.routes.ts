@@ -6,9 +6,11 @@ import { TasksPageComponent } from './pages/tasks-page/tasks-page.component';
 import { TemplatesPageComponent } from './pages/templates-page/templates-page.component';
 import { SettingsPageComponent } from './pages/settings-page/settings-page.component';
 import { SettingsDevComponent } from './pages/settings-dev/settings-dev.component';
+import { SummaryPageComponent } from './pages/summary-page/summary-page.component';
 
 export const routes: Routes = [
   { path: '', component: DayViewComponent },
+  { path: 'summary', component: SummaryPageComponent },
   { path: 'skills', component: SkillsPageComponent },
   { path: 'stats', component: StatsPageComponent },
   { path: 'tasks', component: TasksPageComponent },

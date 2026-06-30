@@ -56,9 +56,13 @@ async function migrate() {
       slot TEXT NOT NULL CHECK(slot IN ('morning', 'afternoon', 'evening')),
       daysOfWeek TEXT NOT NULL,
       enabled INTEGER DEFAULT 1,
+      endDate TEXT,
       FOREIGN KEY (taskId) REFERENCES tasks(id)
     )
   `);
+
+  // Add endDate column to existing templates table (slice 15)
+  try { db.run("ALTER TABLE templates ADD COLUMN endDate TEXT"); } catch(e) { /* may already exist */ }
 
   // Days table
   db.run(`

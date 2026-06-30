@@ -57,6 +57,7 @@ export interface Template {
   daysOfWeek: number[];
   enabled: boolean;
   taskName?: string;
+  endDate?: string | null;
 }
 
 export interface SlotsPayload {

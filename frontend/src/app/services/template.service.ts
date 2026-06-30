@@ -21,11 +21,11 @@ export class TemplateService {
     return this.http.get<RecurringTask[]>(`/api/templates/for-day/${date}`);
   }
 
-  createTemplate(body: { taskId: string; slot: 'morning' | 'afternoon' | 'evening'; daysOfWeek: number[]; enabled?: boolean }): Observable<Template> {
+  createTemplate(body: { taskId: string; slot: 'morning' | 'afternoon' | 'evening'; daysOfWeek: number[]; enabled?: boolean; endDate?: string | null }): Observable<Template> {
     return this.http.post<Template>('/api/templates', body);
   }
 
-  updateTemplate(id: string, body: { enabled?: boolean; daysOfWeek?: number[]; slot?: 'morning' | 'afternoon' | 'evening'; taskId?: string }): Observable<void> {
+  updateTemplate(id: string, body: { enabled?: boolean; daysOfWeek?: number[]; slot?: 'morning' | 'afternoon' | 'evening'; taskId?: string; endDate?: string | null }): Observable<void> {
     return this.http.put<void>(`/api/templates/${id}`, body);
   }
 

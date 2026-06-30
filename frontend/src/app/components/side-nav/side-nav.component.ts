@@ -20,6 +20,17 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <span class="nav-label">DAY</span>
         </a>
 
+        <a class="nav-item" routerLink="/summary" routerLinkActive="active" title="Summary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span class="nav-label">SUMMARY</span>
+        </a>
+
         <a class="nav-item" routerLink="/tasks" routerLinkActive="active" title="Tasks">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 11l3 3L22 4"/>
@@ -80,14 +91,15 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     }
     .logo-wrap {
       margin-bottom: 2rem;
-      padding: 4px 0;
+      padding: 6px 0;
     }
     .logo {
       font-family: var(--font-display);
-      font-size: 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 700;
       color: var(--color-primary);
-      letter-spacing: 0.15em;
-      text-shadow: 0 0 20px var(--color-glow);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
     }
     .nav-items {
       display: flex;
