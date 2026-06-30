@@ -1,6 +1,5 @@
-import { Component, OnInit, inject, signal, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { forkJoin } from 'rxjs';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
 import { TemplateService, RecurringTask } from '../../services/template.service';
@@ -21,34 +20,34 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       </div>
 
       <div class="day-nav">
-        <button class="nav-btn" (click)="previousDay()">
+        <button class="nav-btn" (click)="scrollBy(-1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
         <div class="date-display">
-          <span class="day-range">{{ getDateRangeLabel() }}</span>
+          <span class="day-range">{{ getCenterDateLabel() }}</span>
         </div>
-        <button class="nav-btn" (click)="nextDay()">
+        <button class="nav-btn" (click)="scrollBy(1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </button>
-        <button class="today-btn" (click)="goToToday()">TODAY</button>
+        <button class="today-btn" (click)="scrollToToday()">TODAY</button>
       </div>
 
-      <div class="days-scroll-container" #scrollContainer>
+      <div class="days-scroll-container" #scrollContainer (scroll)="onScroll()">
         <div class="days-grid">
-          @for (day of daysData(); track day.date) {
-            <div class="day-column">
+          @for (day of daysData(); track day.date; let i = $index) {
+            <div class="day-column" [class.centered]="i === centerIndex()">
               <div class="day-header" [class.today]="isToday(day.date)">
                 <div class="day-meta">
                   <span class="day-label">{{ day.date | date:'EEE' }}</span>
                   <span class="day-num">{{ day.date | date:'d' }}</span>
                 </div>
-                @if (recurringPerDay()[day.date]?.length) {
+                @if (i === centerIndex() && recurringForCenter()?.length) {
                   <div class="day-recurring-pills">
-                    @for (r of recurringPerDay()[day.date]; track r.taskId + r.slot) {
+                    @for (r of recurringForCenter(); track r.taskId + r.slot) {
                       <div class="day-recurring-pill">
                         <span class="pill-slot">{{ r.slot.charAt(0).toUpperCase() }}</span>
                         <span class="pill-name">{{ r.taskName || '—' }}</span>
@@ -183,17 +182,22 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
     .days-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(220px, 1fr));
-      gap: 1.5rem;
-      border: var(--card-border-width) var(--card-border-style) var(--color-primary);
-      padding: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0;
       background: var(--color-surface);
-      scroll-snap-align: start;
+      scroll-snap-align: none;
     }
     .day-column {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      padding: 1rem;
+      border-right: 1px solid var(--color-border);
+      scroll-snap-align: none;
+      min-width: 220px;
+    }
+    .day-column:last-child {
+      border-right: none;
     }
     .day-header {
       display: flex;
@@ -225,7 +229,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       color: var(--color-text);
     }
 
-    /* Recurring pills — inside day-header */
+    /* Recurring pills — inside day-header, center day only */
     .day-recurring-pills {
       display: flex;
       flex-wrap: wrap;
@@ -268,7 +272,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
   `]
 })
-export class DayViewComponent implements OnInit, AfterViewInit {
+export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLElement>;
 
   private dayService = inject(DayService);
@@ -279,12 +283,13 @@ export class DayViewComponent implements OnInit, AfterViewInit {
   centerDate = signal(new Date());
   daysData = signal<Day[]>([]);
   tasks = signal<Task[]>([]);
-  recurringPerDay = signal<Record<string, RecurringTask[]>>({});
+  recurringForCenter = signal<RecurringTask[]>([]);
   morningEnabled = signal(true);
   eveningEnabled = signal(true);
+  centerIndex = signal(1);
 
-  private readonly WINDOW_SIZE = 3;
-  private columnWidth = 236; // minmax(220px, 1fr) + 1.5rem gap
+  private columnWidth = 236; // px, matches CSS minmax(220px, 1fr)
+  private loadingMore = false;
 
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
@@ -294,41 +299,120 @@ export class DayViewComponent implements OnInit, AfterViewInit {
         this.eveningEnabled.set(settings['eveningEnabled'] !== 'false');
       }
     });
-    this.loadDays();
+    this.loadInitialDays();
   }
 
   ngAfterViewInit() {
-    // Scroll to center column on init
-    this.scrollToCenter();
+    // Scroll to center column (index 1) on init
+    setTimeout(() => this.scrollToIndex(1), 0);
   }
 
-  private loadDays() {
+  ngOnDestroy() {}
+
+  private loadInitialDays() {
     const center = this.centerDate();
-    const start = this.offsetDate(center, -1);
-    const end = this.offsetDate(center, 1);
+    // Load 7 days centered on today to fill viewport
+    const start = this.offsetDate(center, -3);
+    const end = this.offsetDate(center, 3);
     this.dayService.getDays(this.toDateString(start), this.toDateString(end))
       .subscribe(days => {
         this.daysData.set(days);
-        this.loadRecurringForDays(days.map(d => d.date));
+        // Center index = 3 (today is 4th of 7)
+        this.centerIndex.set(3);
+        this.centerDate.set(center);
+        this.loadRecurringForDay(this.toDateString(center));
+        setTimeout(() => this.scrollToIndex(3), 0);
       });
   }
 
-  private loadRecurringForDays(dates: string[]) {
-    const requests = dates.map(d => this.templateService.getTemplatesForDate(d));
-    forkJoin(requests).subscribe(results => {
-      const map: Record<string, RecurringTask[]> = {};
-      dates.forEach((date, i) => {
-        map[date] = results[i];
-      });
-      this.recurringPerDay.set(map);
+  private loadRecurringForDay(dateStr: string) {
+    this.templateService.getTemplatesForDate(dateStr).subscribe({
+      next: r => this.recurringForCenter.set(r),
+      error: () => this.recurringForCenter.set([])
     });
   }
 
-  private scrollToCenter() {
+  private scrollToIndex(index: number) {
     if (!this.scrollContainer) return;
     const el = this.scrollContainer.nativeElement;
-    const scrollAmount = this.columnWidth;
-    el.scrollTo({ left: scrollAmount, behavior: 'instant' });
+    el.scrollTo({ left: index * this.columnWidth, behavior: 'instant' });
+  }
+
+  onScroll() {
+    if (!this.scrollContainer || this.loadingMore) return;
+    const el = this.scrollContainer.nativeElement;
+    const scrollLeft = el.scrollLeft;
+    const newCenterIndex = Math.round(scrollLeft / this.columnWidth);
+
+    if (newCenterIndex !== this.centerIndex() && newCenterIndex >= 0 && newCenterIndex < this.daysData().length) {
+      this.centerIndex.set(newCenterIndex);
+      const centerDay = this.daysData()[newCenterIndex];
+      if (centerDay) {
+        this.centerDate.set(new Date(centerDay.date));
+        this.loadRecurringForDay(centerDay.date);
+      }
+    }
+
+    // Infinite load forward
+    if (newCenterIndex >= this.daysData().length - 2) {
+      this.loadMoreDays('forward');
+    }
+    // Infinite load backward
+    if (newCenterIndex <= 1) {
+      this.loadMoreDays('backward');
+    }
+  }
+
+  private loadMoreDays(direction: 'forward' | 'backward') {
+    if (this.loadingMore) return;
+    this.loadingMore = true;
+
+    const days = this.daysData();
+    if (direction === 'forward') {
+      const lastDay = days[days.length - 1];
+      const start = this.offsetDate(new Date(lastDay.date), 1);
+      const end = this.offsetDate(new Date(lastDay.date), 7);
+      this.dayService.getDays(this.toDateString(start), this.toDateString(end)).subscribe(newDays => {
+        const filtered = newDays.filter(nd => !days.some(d => d.date === nd.date));
+        if (filtered.length > 0) {
+          this.daysData.update(current => [...current, ...filtered]);
+        }
+        this.loadingMore = false;
+      });
+    } else {
+      const firstDay = days[0];
+      const end = this.offsetDate(new Date(firstDay.date), -1);
+      const start = this.offsetDate(new Date(firstDay.date), -7);
+      this.dayService.getDays(this.toDateString(start), this.toDateString(end)).subscribe(newDays => {
+        const filtered = newDays.filter(nd => !days.some(d => d.date === nd.date));
+        if (filtered.length > 0) {
+          this.daysData.update(current => [...filtered, ...current]);
+          this.centerIndex.update(i => i + filtered.length);
+        }
+        this.loadingMore = false;
+      });
+    }
+  }
+
+  scrollBy(delta: number) {
+    if (!this.scrollContainer) return;
+    const el = this.scrollContainer.nativeElement;
+    el.scrollBy({ left: delta * this.columnWidth, behavior: 'smooth' });
+  }
+
+  scrollToToday() {
+    const todayStr = this.toDateString(new Date());
+    const idx = this.daysData().findIndex(d => d.date === todayStr);
+    if (idx >= 0) {
+      this.scrollToIndex(idx);
+      this.centerIndex.set(idx);
+      this.centerDate.set(new Date());
+      this.loadRecurringForDay(todayStr);
+    } else {
+      // Reload with today as center
+      this.centerDate.set(new Date());
+      this.loadInitialDays();
+    }
   }
 
   private offsetDate(date: Date, days: number): Date {
@@ -337,63 +421,15 @@ export class DayViewComponent implements OnInit, AfterViewInit {
     return d;
   }
 
-  previousDay() {
-    if (!this.scrollContainer) {
-      this.centerDate.set(this.offsetDate(this.centerDate(), -1));
-      this.loadDays();
-      return;
-    }
-    const el = this.scrollContainer.nativeElement;
-    el.scrollBy({ left: -(this.columnWidth), behavior: 'smooth' });
-    setTimeout(() => {
-      this.centerDate.set(this.offsetDate(this.centerDate(), -1));
-      this.loadDays();
-    }, 200);
-  }
-
-  nextDay() {
-    if (!this.scrollContainer) {
-      this.centerDate.set(this.offsetDate(this.centerDate(), 1));
-      this.loadDays();
-      return;
-    }
-    const el = this.scrollContainer.nativeElement;
-    el.scrollBy({ left: this.columnWidth, behavior: 'smooth' });
-    setTimeout(() => {
-      this.centerDate.set(this.offsetDate(this.centerDate(), 1));
-      this.loadDays();
-    }, 200);
-  }
-
-  goToToday() {
-    if (this.scrollContainer) {
-      this.scrollContainer.nativeElement.scrollTo({ left: 0, behavior: 'smooth' });
-    }
-    this.centerDate.set(new Date());
-    this.loadDays();
-  }
-
   isToday(dateStr: string): boolean {
     return dateStr === this.toDateString(new Date());
   }
 
-  getDateRangeLabel(): string {
-    const days = this.daysData();
-    if (days.length === 0) return '';
-    const first = days[0].date;
-    const last = days[days.length - 1].date;
-    if (first === last) {
-      const d = new Date(first);
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    }
-    const firstDate = new Date(first);
-    const lastDate = new Date(last);
-    const firstStr = firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const lastStr = lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    if (firstDate.getFullYear() === lastDate.getFullYear()) {
-      return `${firstStr} – ${lastStr}`;
-    }
-    return `${firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${lastStr}`;
+  getCenterDateLabel(): string {
+    const day = this.daysData()[this.centerIndex()];
+    if (!day) return '';
+    const d = new Date(day.date);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   onSlotTaskSelected(date: string, slotName: 'morning' | 'afternoon' | 'evening', taskId: string | null) {
@@ -402,21 +438,27 @@ export class DayViewComponent implements OnInit, AfterViewInit {
         ? { status: 'free' }
         : { status: 'set', taskId }
     };
-    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
+    this.dayService.updateDay(date, payload).subscribe(() => this.reloadDay(date));
   }
 
   onSlotCompleted(date: string, slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
     const payload: SlotsPayload = {
       [slotName]: { completed: true }
     };
-    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
+    this.dayService.updateDay(date, payload).subscribe(() => this.reloadDay(date));
   }
 
   onSlotUncompleted(date: string, slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
     const payload: SlotsPayload = {
       [slotName]: { completed: false }
     };
-    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
+    this.dayService.updateDay(date, payload).subscribe(() => this.reloadDay(date));
+  }
+
+  private reloadDay(date: string) {
+    this.dayService.getDay(date).subscribe(day => {
+      this.daysData.update(days => days.map(d => d.date === date ? day : d));
+    });
   }
 
   private toDateString(date: Date): string {
