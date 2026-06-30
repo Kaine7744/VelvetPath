@@ -433,9 +433,119 @@ const dbModule = {
   },
 
   // Statistics
-  async getStatistics(period, { startDate, endDate }) {
-    // TODO: implement period-based statistics
-    return { period, startDate, endDate, tasksCompleted: 0, statGrowth: {} };
+  async getStatistics(period, { startDate, endDate } = {}) {
+    const { start, end } = this.computeDateRange(period, startDate, endDate);
+    const days = await this.getDaysRange(start, end);
+
+    const totalSlots = days.length * 3;
+    let completedSlots = 0;
+    let morningCompleted = 0, afternoonCompleted = 0, eveningCompleted = 0;
+    let morningTotal = 0, afternoonTotal = 0, eveningTotal = 0;
+
+    for (const day of days) {
+      if (day.morning.status === 'set') { morningTotal++; if (day.morning.completed) { morningCompleted++; completedSlots++; } }
+      if (day.afternoon.status === 'set') { afternoonTotal++; if (day.afternoon.completed) { afternoonCompleted++; completedSlots++; } }
+      if (day.evening.status === 'set') { eveningTotal++; if (day.evening.completed) { eveningCompleted++; completedSlots++; } }
+    }
+
+    const completionRate = totalSlots > 0 ? Math.round((completedSlots / totalSlots) * 100) : 0;
+
+    // Streak: count consecutive days with ≥1 completed task, going backwards from end date
+    const streakDays = await this.getStreakDays(end);
+
+    // Today's gains (day view only): stat gains from completed tasks on today
+    const todayGains = [];
+    if (period === 'day') {
+      const today = new Date().toISOString().split('T')[0];
+      const todayDay = await this.getDay(today);
+      const allTasks = await this.getAllTasks();
+      const tasksMap = Object.fromEntries(allTasks.map(t => [t.id, t]));
+      for (const slotName of ['morning', 'afternoon', 'evening']) {
+        const slot = todayDay[slotName];
+        if (slot.status === 'set' && slot.completed && slot.taskId) {
+          const task = tasksMap[slot.taskId];
+          if (task && task.statId) {
+            todayGains.push({ statId: task.statId, statName: task.statName || task.name, gain: task.statGain || 0 });
+          }
+        }
+      }
+    }
+
+    return {
+      period,
+      startDate: start,
+      endDate: end,
+      totalSlots,
+      completedSlots,
+      completionRate,
+      bySlot: {
+        morning: { total: morningTotal, completed: morningCompleted, rate: morningTotal > 0 ? Math.round((morningCompleted / morningTotal) * 100) : 0 },
+        afternoon: { total: afternoonTotal, completed: afternoonCompleted, rate: afternoonTotal > 0 ? Math.round((afternoonCompleted / afternoonTotal) * 100) : 0 },
+        evening: { total: eveningTotal, completed: eveningCompleted, rate: eveningTotal > 0 ? Math.round((eveningCompleted / eveningTotal) * 100) : 0 },
+      },
+      streakDays,
+      todayGains,
+    };
+  },
+
+  computeDateRange(period, startDate, endDate) {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth();
+    const d = today.getDate();
+    const dow = today.getDay(); // 0=Sun
+
+    if (startDate && endDate) {
+      return { start: startDate, end: endDate };
+    }
+
+    switch (period) {
+      case 'day': {
+        const start = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        return { start, end: start };
+      }
+      case 'week': {
+        // Monday of current week
+        const mondayOffset = dow === 0 ? -6 : 1 - dow;
+        const monday = new Date(today);
+        monday.setDate(d + mondayOffset);
+        // Sunday of current week
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        const fmt = dt => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+        return { start: fmt(monday), end: fmt(sunday) };
+      }
+      case 'month': {
+        const start = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+        const lastDay = new Date(y, m + 1, 0).getDate();
+        const end = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        return { start, end };
+      }
+      case 'year': {
+        return { start: `${y}-01-01`, end: `${y}-12-31` };
+      }
+      default:
+        return { start: startDate || `${y}-01-01`, end: endDate || `${y}-12-31` };
+    }
+  },
+
+  async getStreakDays(endDate) {
+    let streak = 0;
+    const cur = new Date(endDate + 'T00:00:00');
+    while (true) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, '0');
+      const dayStr = `${y}-${m}-${String(cur.getDate()).padStart(2, '0')}`;
+      const day = await this.getDayRecord(dayStr);
+      const hasCompleted = day.morning.completed || day.afternoon.completed || day.evening.completed;
+      if (hasCompleted) {
+        streak++;
+        cur.setDate(cur.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
   },
 
   // ============ DEV TOOLS ============
