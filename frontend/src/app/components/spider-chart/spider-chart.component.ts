@@ -77,9 +77,9 @@ export class SpiderChartComponent implements AfterViewInit, OnDestroy {
   }
 
   private getSkillValue(skill: Skill): number {
-    const inner = skill.currentValue % 100;
-    if (inner === 0 && skill.currentValue > 0) return 100; // boundary → edge
-    return Math.min(100, inner || (skill.currentValue > 0 ? 100 : 0));
+    // Use the raw value so multi-tier stats track correctly within their current tier ceiling
+    // e.g., 199 with max=200 → 199 (≈edge), 150 with max=200 → 150 (75% toward edge)
+    return skill.currentValue;
   }
 
   private getScaleMax(): number {
@@ -163,10 +163,27 @@ export class SpiderChartComponent implements AfterViewInit, OnDestroy {
 
   private updateChart() {
     if (!this.chart) return;
+
+    // Reassign scale object so Chart.js detects the max change
+    const scales = this.chart.options.scales;
+    if (!scales) return;
+    const currentScale = scales['r'] as any;
+    const newMax = this.getScaleMax();
+    if (currentScale.max !== newMax) {
+      scales['r'] = { ...currentScale, max: newMax };
+    }
+
     this.chart.data.labels = this.getOrderedLabels();
+<<<<<<< HEAD
     this.chart.data.datasets[0].data = this.getOrderedData();
     (this.chart.data.datasets[0] as ChartDataset<'radar'>).pointBackgroundColor = this.getOrderedColors();
     (this.chart.options.scales as any)['r'].max = this.getScaleMax();
+=======
+    const newData = this.getOrderedData();
+    const dataset = this.chart.data.datasets[0] as ChartDataset<'radar'>;
+    dataset.data.splice(0, dataset.data.length, ...newData);
+    dataset.pointBackgroundColor = this.getOrderedColors();
+>>>>>>> 707be20 (final)
     this.chart.update();
   }
 

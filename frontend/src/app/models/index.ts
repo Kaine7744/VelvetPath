@@ -80,6 +80,8 @@ export interface AppSettings {
   theme: string;
   morningEnabled: boolean;
   eveningEnabled: boolean;
+  morningDays: number[];
+  eveningDays: number[];
 }
 
 export function parseAppSettings(raw: Record<string, string>): AppSettings {
@@ -87,5 +89,17 @@ export function parseAppSettings(raw: Record<string, string>): AppSettings {
     theme: raw['theme'] ?? 'p5',
     morningEnabled: raw['morningEnabled'] !== 'false',
     eveningEnabled: raw['eveningEnabled'] !== 'false',
+    morningDays: parseDaysArray(raw['morningDays']),
+    eveningDays: parseDaysArray(raw['eveningDays']),
   };
+}
+
+function parseDaysArray(value: string | undefined): number[] {
+  if (!value) return [1, 2, 3, 4, 5]; // Mon–Fri default
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [1, 2, 3, 4, 5];
+  } catch {
+    return [1, 2, 3, 4, 5];
+  }
 }

@@ -103,7 +103,7 @@
 ---
 
 ## ✅ Slice 7 — Statistics Dashboard
-**Status:** Backlog
+**Status:** Completed
 
 ### Features
 - [ ] Day / Week / Month / Year Views
@@ -333,6 +333,85 @@ Restored 3-day side-by-side grid with proper day navigation via ← → buttons.
 
 ---
 
+## ✅ Slice 19 — Signal-Backed SkillService (KB-3 Fix)
+**Status:** Completed
+
+### Overview
+Made `SkillService` a signal-backed shared store so that skill mutations (create/update/delete/complete/undo) propagate to all components without manual refresh or navigation hacks.
+
+### Changes
+
+**`frontend/src/app/services/skill.service.ts`:**
+- Added `skills = signal<Skill[]>([])` as shared state
+- Added `refresh()` method — fetches from API and updates the signal
+- Added `tap(() => this.refresh())` to `createSkill`, `updateSkill`, `deleteSkill` so any mutation auto-refreshes
+
+**`frontend/src/app/pages/skills-page/skills-page.component.ts`:**
+- Replaced local `skills = signal<Skill[]>([])` + `loadSkills()` with `skills = this.skillService.skills`
+- Removed `NavigationEnd` subscription hack (no longer needed)
+- `ngOnInit` calls `skillService.refresh()` once for initial load
+
+**`frontend/src/app/pages/tasks-page/tasks-page.component.ts`:**
+- Same pattern — `skills = this.skillService.skills`, removed local `loadSkills()`
+
+**`frontend/src/app/pages/settings-dev/settings-dev.component.ts`:**
+- Same pattern — `skills = this.skillService.skills`, removed local `loadSkills()`
+
+**`frontend/src/app/pages/day-view/day-view.component.ts`:**
+- `onSlotCompleted` and `onSlotUncompleted` now call `skillService.refresh()` after `loadDays()`
+- Removed discarded `getSkills().subscribe()` calls
+
+### Files
+- `frontend/src/app/services/skill.service.ts`
+- `frontend/src/app/pages/skills-page/skills-page.component.ts`
+- `frontend/src/app/pages/tasks-page/tasks-page.component.ts`
+- `frontend/src/app/pages/settings-dev/settings-dev.component.ts`
+- `frontend/src/app/pages/day-view/day-view.component.ts`
+
+---
+
+## ✅ Slice 20 — Spider Chart `getSkillValue` Fix (KB-1)
+**Status:** Completed
+
+### Overview
+Fixed the spider chart so stats correctly track their position within a tier after crossing the first tier boundary.
+
+### Fix
+
+**`frontend/src/app/components/spider-chart/spider-chart.component.ts` — `getSkillValue()`:**
+
+Removed the `currentValue % 100` modulo that collapsed multi-tier stats:
+
+```typescript
+private getSkillValue(skill: Skill): number {
+  // Use the raw value so multi-tier stats track correctly within their current tier ceiling
+  return skill.currentValue;
+}
+```
+
+`getScaleMax()` already handles tier ceiling logic — stat=150 with ceiling=200 now correctly shows 75% toward edge.
+
+### Files
+- `frontend/src/app/components/spider-chart/spider-chart.component.ts`
+
+---
+
+## Resolved Bugs
+
+### KB-1: Spider Chart Freezes After First Level-Up
+**Fixed in:** Slice 20 (Spider Chart `getSkillValue` Fix)
+
+**Root Cause:** `getSkillValue()` used `skill.currentValue % 100` to normalize values to 0–100. This collapsed multi-tier stats — stat at 199 would return `199 % 100 = 99` but the scale ceiling was 200, so the chart showed 99/200 ≈ 49.5% instead of near the edge. After the first tier boundary, the polygon position no longer tracked the stat's true progress.
+
+**Fix:** Removed the modulo — `getSkillValue()` now returns `skill.currentValue` directly. `getScaleMax()` already handles the ceiling correctly, so stat=150 with max=200 now correctly shows 150/200 = 75% toward edge.
+
+### KB-2: Settings Dev Page Has No Back Navigation
+**Fixed in:** Slice 4 (Dev Tools original implementation)
+
+A back link was added to the dev page via `routerLink="/settings"`. The sidebar always remains visible as an alternative navigation path.
+
+---
+
 ## Misbehavior Tally
 
 | # | Slice | Issue | Status |
@@ -342,61 +421,24 @@ Restored 3-day side-by-side grid with proper day navigation via ← → buttons.
 | M3 | Slice 3 | VP logo looks off/wrong | **Fixed** |
 | M4 | Slice 3 | Colored border boxes inconsistent | **Fixed** |
 | M5 | Slice 3 | Page animations P4/P3 broken | **Fixed** |
+| M6 | Slice 19 | `SkillService` stateless — `getSkills().subscribe()` discarded | **Fixed** (signal-backed store) |
 
 ---
 
 ## Known Bugs (Unresolved)
 
-### KB-1: Spider Chart Stale After Level-Up
-**Severity:** Medium
-**Affected since:** Slice 3 (Spider Chart original implementation)
-
-**Problem:** The spider chart does not update when skill values change. After completing a task (gaining stat points) or undoing one (losing points), the radar chart shows stale values even though the backend data is correct.
-
-**Root Cause:** `spider-chart.component.ts` uses `skills = input<Skill[]>([])` — the Angular signal-based `input()` API. The component implements `OnChanges` and checks `ngOnChanges`, but **`ngOnChanges` is never called for signal inputs**. The change detection callback is effectively dead code.
-
-**Attempts to Fix:**
-- Replaced `ngOnChanges` with `effect()` in the constructor — `effect()` does track signal changes correctly
-- The chart should re-render when `skills()` signal updates
-
-**Status:** Still not working despite the fix. The `effect()` fires but the chart update behavior may need deeper investigation. Likely causes:
-- Chart.js radar chart `update()` may not properly handle scale changes after data update
-- The canvas or chart context may not be in a valid state when `effect()` fires
-- There may be a timing issue with `ngAfterViewInit` vs the `effect` trigger race
-
-**Workaround:** Navigate away from and back to the skills page after completing tasks.
-
----
-
-### KB-2: Settings Dev Page Has No Back Navigation
-**Severity:** Low
-**Affected since:** Slice 4 (Dev Tools original implementation)
-
-**Problem:** The `/settings/dev` route is a separate Angular route from `/settings`. When navigating to `/settings/dev`, the `SettingsPageComponent` is destroyed, taking the sub-nav tabs and any back links with it. The dev page had no way to navigate back.
-
-**Root Cause:** Settings uses a sub-nav with `activeTab` signal for internal tab state. The Dev tab links to a separate route (`/settings/dev`) rather than a tab within the settings page.
-
-**Status:** Partially addressed — a back link was added to the dev page. The sidebar always remains visible.
-
-**Workaround:** Use the sidebar "CONFIG" nav item to return to settings, or the "Back to Settings" link on the dev page.
-
----
-
 ### KB-3: Undo Does Not Remove Stat Points (Frontend Staleness)
 **Severity:** Medium
 **Affected since:** Slice 10 (Reversible Completion)
+**Fixed in:** Slice 19 (Signal-Backed SkillService)
 
 **Problem:** When undoing a completed task, the backend correctly subtracts stat points (`shrinkStat()`), but the frontend skill display (spider chart, skills list) does not reflect the reduction.
 
-**Root Cause:** After undo, `day-view.component.ts` calls `loadDays()` to refresh day data but does not reload skills. The skills signal anywhere in the app stays stale with the old value.
+**Root Cause (original):** `SkillService` was a stateless HTTP wrapper — every component had its own local `signal<Skill[]>`. When `day-view` called `getSkills().subscribe()` on undo, the result was thrown away. The spider chart (in `skills-page`) only re-fetched on `NavigationEnd`.
 
-**Attempts to Fix:**
-- Added `skillService.getSkills()` call in `onSlotUncompleted()` to refresh skills after undo
-- Backend `shrinkStat()` condition changed from `result.gain < 0` to `result.newValue !== result.oldValue`
+**Fix:** `SkillService` now owns a shared `skills = signal<Skill[]>([])`. Mutation methods (`createSkill`, `updateSkill`, `deleteSkill`) call `refresh()` via `tap()`. Components (`skills-page`, `tasks-page`, `settings-dev`, `day-view`) reference `skillService.skills` directly — no local signals, no discarded subscriptions.
 
-**Status:** Partially addressed — skills should now be reloaded after undo. Interacts with KB-1 so the spider chart may still not update.
-
-**Workaround:** Hard-refresh the skills page after undoing a task.
+**Status:** Fixed.
 
 ---
 

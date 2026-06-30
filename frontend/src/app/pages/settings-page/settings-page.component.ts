@@ -5,6 +5,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService, ThemeId } from '../../services/theme.service';
 import { SettingsService } from '../../services/settings.service';
 import { isDevMode } from '@angular/core';
+import { parseAppSettings } from '../../models';
 
 @Component({
   selector: 'app-settings-page',
@@ -15,14 +16,6 @@ import { isDevMode } from '@angular/core';
       <div class="page-title skew-heading">
         <div class="skew-heading-inner">SETTINGS</div>
       </div>
-
-      <!-- Back link -->
-      <a class="back-link" routerLink="/">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        Back to Planner
-      </a>
 
       <!-- Sub-nav -->
       <div class="settings-sub-nav">
@@ -83,31 +76,41 @@ import { isDevMode } from '@angular/core';
       @if (activeTab() === 'general') {
         <div class="settings-section">
           <div class="section-label">— SLOT VISIBILITY —</div>
-          <div class="toggle-row">
+
+          <!-- Morning slot weekday toggles -->
+          <div class="weekday-slot-row">
             <div class="toggle-info">
               <div class="toggle-name">Morning Slot</div>
-              <div class="toggle-desc">Show morning slots in the day planner</div>
+              <div class="toggle-desc">Active on these days</div>
             </div>
-            <button
-              class="toggle-btn"
-              [class.on]="morningEnabled()"
-              (click)="onSlotToggle('morning', !morningEnabled())"
-            >
-              {{ morningEnabled() ? 'ON' : 'OFF' }}
-            </button>
+            <div class="weekday-toggles">
+              @for (day of weekdayDefs; track day.value) {
+                <button
+                  class="weekday-btn"
+                  [class.on]="isMorningDay(day.value)"
+                  (click)="toggleMorningDay(day.value)"
+                  [title]="day.label"
+                >{{ day.short }}</button>
+              }
+            </div>
           </div>
-          <div class="toggle-row">
+
+          <!-- Evening slot weekday toggles -->
+          <div class="weekday-slot-row">
             <div class="toggle-info">
               <div class="toggle-name">Evening Slot</div>
-              <div class="toggle-desc">Show evening slots in the day planner</div>
+              <div class="toggle-desc">Active on these days</div>
             </div>
-            <button
-              class="toggle-btn"
-              [class.on]="eveningEnabled()"
-              (click)="onSlotToggle('evening', !eveningEnabled())"
-            >
-              {{ eveningEnabled() ? 'ON' : 'OFF' }}
-            </button>
+            <div class="weekday-toggles">
+              @for (day of weekdayDefs; track day.value) {
+                <button
+                  class="weekday-btn"
+                  [class.on]="isEveningDay(day.value)"
+                  (click)="toggleEveningDay(day.value)"
+                  [title]="day.label"
+                >{{ day.short }}</button>
+              }
+            </div>
           </div>
         </div>
       }
@@ -326,6 +329,43 @@ import { isDevMode } from '@angular/core';
       border-color: var(--color-text-dim);
       color: var(--color-text);
     }
+
+    /* Weekday toggles */
+    .weekday-slot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .weekday-slot-row:last-child {
+      border-bottom: none;
+    }
+    .weekday-toggles {
+      display: flex;
+      gap: 4px;
+    }
+    .weekday-btn {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-dim);
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .weekday-btn.on {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+    .weekday-btn:hover:not(.on) {
+      border-color: var(--color-text-dim);
+      color: var(--color-text);
+    }
   `]
 })
 export class SettingsPageComponent implements OnInit {
@@ -335,33 +375,70 @@ export class SettingsPageComponent implements OnInit {
 
   devMode = signal(isDevMode());
   activeTab = signal<'appearance' | 'general' | 'dev'>('appearance');
-  morningEnabled = signal(true);
-  eveningEnabled = signal(true);
+  morningDays = signal<number[]>([1, 2, 3, 4, 5]);
+  eveningDays = signal<number[]>([1, 2, 3, 4, 5]);
+
+  readonly weekdayDefs = [
+    { short: 'S', label: 'Sunday',    value: 0 },
+    { short: 'M', label: 'Monday',    value: 1 },
+    { short: 'T', label: 'Tuesday',   value: 2 },
+    { short: 'W', label: 'Wednesday',value: 3 },
+    { short: 'T', label: 'Thursday', value: 4 },
+    { short: 'F', label: 'Friday',   value: 5 },
+    { short: 'S', label: 'Saturday', value: 6 },
+  ];
 
   ngOnInit() {
+    // Respect ?tab= query param when navigating from settings-dev
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab === 'general') this.activeTab.set('general');
+
     this.settingsService.getSettings().subscribe({
-      next: settings => {
-        this.morningEnabled.set(settings['morningEnabled'] !== 'false');
-        this.eveningEnabled.set(settings['eveningEnabled'] !== 'false');
+      next: raw => {
+        const settings = parseAppSettings(raw);
+        this.morningDays.set(settings.morningDays);
+        this.eveningDays.set(settings.eveningDays);
       }
     });
   }
 
   selectTheme(id: ThemeId) {
     this.themeService.setTheme(id);
-    this.router.navigate(['/']);
+    this.router.navigate(['/settings']);
   }
 
-  onSlotToggle(slot: 'morning' | 'evening', enabled: boolean) {
-    const key = slot === 'morning' ? 'morningEnabled' : 'eveningEnabled';
-    if (slot === 'morning') this.morningEnabled.set(enabled);
-    else this.eveningEnabled.set(enabled);
-    this.settingsService.updateSetting(key, String(enabled)).subscribe({
+  isMorningDay(day: number): boolean {
+    return this.morningDays().includes(day);
+  }
+
+  isEveningDay(day: number): boolean {
+    return this.eveningDays().includes(day);
+  }
+
+  toggleMorningDay(day: number) {
+    const current = this.morningDays();
+    const updated = current.includes(day)
+      ? current.filter(d => d !== day)
+      : [...current, day].sort((a, b) => a - b);
+    this.morningDays.set(updated);
+    this.settingsService.updateSetting('morningDays', JSON.stringify(updated)).subscribe({
       error: err => {
-        console.error('Failed to update slot setting:', err);
-        // Revert on error
-        if (slot === 'morning') this.morningEnabled.set(!enabled);
-        else this.eveningEnabled.set(!enabled);
+        console.error('Failed to update morningDays:', err);
+        this.morningDays.set(current);
+      }
+    });
+  }
+
+  toggleEveningDay(day: number) {
+    const current = this.eveningDays();
+    const updated = current.includes(day)
+      ? current.filter(d => d !== day)
+      : [...current, day].sort((a, b) => a - b);
+    this.eveningDays.set(updated);
+    this.settingsService.updateSetting('eveningDays', JSON.stringify(updated)).subscribe({
+      error: err => {
+        console.error('Failed to update eveningDays:', err);
+        this.eveningDays.set(current);
       }
     });
   }

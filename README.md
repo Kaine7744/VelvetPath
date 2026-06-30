@@ -14,15 +14,18 @@ Inspired by the Persona 3/4/5 Free Time mechanics, VelvetPath helps you focus on
 ## Quick Start
 
 ```bash
-# Install dependencies
+# First time: install all dependencies
 npm run install:all
 
-# Start development (frontend + backend)
+# Start both servers (frontend + backend)
 npm run start
-
-# Build for production
-npm run build
 ```
+
+That's it. You'll see:
+- **Frontend:** http://localhost:4200
+- **Backend:** http://localhost:3000
+
+Logs from each server are color-coded and prefixed so you can tell them apart. Press `Ctrl+C` to stop both.
 
 ## Tech Stack
 

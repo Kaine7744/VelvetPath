@@ -70,7 +70,7 @@ const dbModule = {
       const d = String(cur.getDate()).padStart(2, '0');
       const dateStr = `${y}-${m}-${d}`;
       const dayOfWeek = cur.getDay();
-      const templates = await this.getTemplatesForDay(dayOfWeek);
+      const templates = await this.getTemplatesForDay(dayOfWeek, dateStr);
       const templateMap = {};
       for (const t of templates) {
         templateMap[t.slot] = t.taskId;
@@ -153,9 +153,8 @@ const dbModule = {
   async getTemplatesForDay(dayOfWeek, date) {
     await getDb();
     const templates = [];
-    // date is YYYY-MM-DD — filter: endDate IS NULL OR endDate >= date
     const sql = `
-      SELECT t.*, tk.name as taskName
+      SELECT t.id, t.taskId, t.slot, t.daysOfWeek, t.enabled, tk.name as taskName
       FROM templates t
       JOIN tasks tk ON t.taskId = tk.id
       WHERE t.enabled = 1
@@ -238,7 +237,6 @@ const dbModule = {
     const tasksMap = Object.fromEntries(allTasks.map(t => [t.id, t]));
     for (const [slotName, slot, prevSlot] of [['morning', morning, existing.morning], ['afternoon', afternoon, existing.afternoon], ['evening', evening, existing.evening]]) {
       if (slot.completed && !prevSlot.completed && slot.taskId) {
-        // Slot transitioned to completed → award stat points
         const task = tasksMap[slot.taskId];
         if (task && task.statId) {
           const result = await this.growStat(task.statId, task.statGain);
@@ -247,7 +245,6 @@ const dbModule = {
           }
         }
       } else if (!slot.completed && prevSlot.completed && prevSlot.taskId) {
-        // Slot transitioned to uncompleted (undo) → remove stat points
         const task = tasksMap[prevSlot.taskId];
         if (task && task.statId) {
           const result = await this.shrinkStat(task.statId, task.statGain);

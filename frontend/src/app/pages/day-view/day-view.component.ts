@@ -5,7 +5,7 @@ import { TaskService } from '../../services/task.service';
 import { TemplateService, RecurringTask } from '../../services/template.service';
 import { SettingsService } from '../../services/settings.service';
 import { SkillService } from '../../services/skill.service';
-import { Day, SlotsPayload } from '../../models';
+import { Day, SlotsPayload, parseAppSettings } from '../../models';
 import { SlotCardComponent } from '../../components/slot-card/slot-card.component';
 
 @Component({
@@ -56,7 +56,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
               </div>
               <div class="slots-wrapper skew-outer">
                 <div class="slots-inner">
-                  @if (morningEnabled()) {
+                  @if (isMorningEnabled(day.date)) {
                     <app-slot-card
                       [slot]="day.slots.morning"
                       slotName="Morning"
@@ -74,7 +74,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
                     (completed)="onSlotCompleted(day.date, 'afternoon', $event)"
                     (uncompleted)="onSlotUncompleted(day.date, 'afternoon', $event)"
                   />
-                  @if (eveningEnabled()) {
+                  @if (isEveningEnabled(day.date)) {
                     <app-slot-card
                       [slot]="day.slots.evening"
                       slotName="Evening"
@@ -267,18 +267,21 @@ export class DayViewComponent implements OnInit {
   daysData = signal<Day[]>([]);
   tasks = signal<any[]>([]);
   recurringPerDay = signal<Record<string, RecurringTask[]>>({});
-  morningEnabled = signal(true);
-  eveningEnabled = signal(true);
+  morningDays = signal<number[]>([1, 2, 3, 4, 5]);
+  eveningDays = signal<number[]>([1, 2, 3, 4, 5]);
 
   private scrollAccumulator = 0;
-  private readonly DAY_THRESHOLD = 60; // px before day changes — slower
+  private readonly DAY_THRESHOLD = 30; // px before day changes — easier single-scroll
+  private readonly VELOCITY_CAP = 15;  // max px per wheel event
+  private readonly DAMPING = 0.6;       // slows fast swipes
 
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
     this.settingsService.getSettings().subscribe({
-      next: settings => {
-        this.morningEnabled.set(settings['morningEnabled'] !== 'false');
-        this.eveningEnabled.set(settings['eveningEnabled'] !== 'false');
+      next: raw => {
+        const settings = parseAppSettings(raw);
+        this.morningDays.set(settings.morningDays);
+        this.eveningDays.set(settings.eveningDays);
       }
     });
     this.loadDays();
@@ -288,9 +291,11 @@ export class DayViewComponent implements OnInit {
   onWheel(event: WheelEvent) {
     event.preventDefault();
 
-    const delta = event.deltaX; // horizontal scroll only — vertical wheel scrolls the page
-    if (Math.abs(delta) < 3) return;
+    const rawDelta = event.deltaX; // horizontal scroll only — vertical wheel scrolls the page
+    if (Math.abs(rawDelta) < 3) return;
 
+    // Apply velocity cap and damping to prevent fast swipes from skipping days
+    const delta = Math.sign(rawDelta) * Math.min(Math.abs(rawDelta), this.VELOCITY_CAP) * this.DAMPING;
     this.scrollAccumulator += delta;
 
     if (Math.abs(this.scrollAccumulator) >= this.DAY_THRESHOLD) {
@@ -386,6 +391,18 @@ export class DayViewComponent implements OnInit {
     return dateStr === this.toDateString(new Date());
   }
 
+  private getWeekday(dateStr: string): number {
+    return new Date(dateStr).getDay(); // 0=Sun ... 6=Sat
+  }
+
+  isMorningEnabled(dateStr: string): boolean {
+    return this.morningDays().includes(this.getWeekday(dateStr));
+  }
+
+  isEveningEnabled(dateStr: string): boolean {
+    return this.eveningDays().includes(this.getWeekday(dateStr));
+  }
+
   getCenterDateLabel(): string {
     const day = this.daysData()[1];
     if (!day) return '';
@@ -406,7 +423,10 @@ export class DayViewComponent implements OnInit {
     const payload: SlotsPayload = {
       [slotName]: { completed: true }
     };
-    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
+    this.dayService.updateDay(date, payload).subscribe(() => {
+      this.loadDays();
+      this.skillService.refresh();
+    });
   }
 
   onSlotUncompleted(date: string, slotName: 'morning' | 'afternoon' | 'evening', event: { slot: string; statGain: number; statName: string }) {
@@ -415,8 +435,7 @@ export class DayViewComponent implements OnInit {
     };
     this.dayService.updateDay(date, payload).subscribe(() => {
       this.loadDays();
-      // Reload skills so the skills-page spider chart reflects the point removal
-      this.skillService.getSkills().subscribe();
+      this.skillService.refresh();
     });
   }
 

@@ -115,8 +115,17 @@ export class AppComponent implements OnInit, OnDestroy {
   tierUpEvent = signal<TierUpEvent | null>(null);
 
   private tierUpSub?: Subscription;
+  private swipeHandler = (e: WheelEvent) => {
+    // Disable macOS Safari two-finger swipe-back/forward gesture
+    // Safari uses ctrlKey + deltaX for the gesture
+    if (e.ctrlKey && Math.abs(e.deltaX) > 0) {
+      e.preventDefault();
+    }
+  };
 
   ngOnInit() {
+    window.addEventListener('wheel', this.swipeHandler, { passive: false });
+
     this.router.events.pipe(
       filter(e => e instanceof NavigationStart)
     ).subscribe(() => {
@@ -140,5 +149,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.tierUpSub?.unsubscribe();
+    window.removeEventListener('wheel', this.swipeHandler);
   }
 }

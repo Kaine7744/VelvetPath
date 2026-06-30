@@ -75,7 +75,15 @@ router.put('/:date', async (req, res) => {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'slots object required' });
     }
 
-    const { statGrowths, statShrinkages } = await db.updateDay(date, slots);
+    let statGrowths = [];
+    let statShrinkages = [];
+    try {
+      const result = await db.updateDay(date, slots);
+      statGrowths = result.statGrowths;
+      statShrinkages = result.statShrinkages;
+    } catch(e) {
+      throw e;
+    }
 
     // Return enriched day data
     const day = await db.getDay(date);

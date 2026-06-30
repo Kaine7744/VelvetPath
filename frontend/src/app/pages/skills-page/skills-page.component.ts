@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, NavigationEnd } from '@angular/router';
 import { SkillService } from '../../services/skill.service';
 import { Skill } from '../../models';
 import { SpiderChartComponent } from '../../components/spider-chart/spider-chart.component';
@@ -12,10 +11,12 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
   template: `
     <div class="skills-page">
       <!-- Page header — calling card style -->
-      <div class="calling-card header-card">
-        <div class="calling-card-label">▶ ARCANE — SKILLS</div>
-        <div class="skew-heading">
-          <div class="skew-heading-inner">SKILLS</div>
+      <div class="page-header">
+        <div class="calling-card header-card">
+          <div class="calling-card-label">▶ ARCANE — SKILLS</div>
+          <div class="skew-heading">
+            <div class="skew-heading-inner">SKILLS</div>
+          </div>
         </div>
       </div>
 
@@ -122,8 +123,32 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
       padding: 20px;
       max-width: 680px;
     }
+    .page-header {
+      margin-bottom: 2rem;
+    }
     .header-card {
-      margin-bottom: 16px;
+      margin-bottom: 0.5rem;
+    }
+    .calling-card-label {
+      font-family: 'Impact', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--color-primary);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .skew-heading {
+      transform: skewX(-3deg);
+      display: inline-block;
+    }
+    .skew-heading-inner {
+      transform: skewX(3deg);
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 3rem;
+      color: var(--color-primary);
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 30px var(--color-glow);
     }
     .chart-container {
       background: var(--color-card);
@@ -286,9 +311,10 @@ import { SpiderChartComponent } from '../../components/spider-chart/spider-chart
   `]
 })
 export class SkillsPageComponent implements OnInit {
-  private skillService = inject(SkillService);
-  private router = inject(Router);
-  skills = signal<Skill[]>([]);
+  protected skillService = inject(SkillService);
+  // Use the shared skills signal from SkillService so spider chart and list
+  // update automatically when any component calls createSkill / updateSkill / deleteSkill
+  skills = this.skillService.skills;
 
   editingId = signal<string | null>(null);
   editingSkillName = signal('');
@@ -304,22 +330,11 @@ export class SkillsPageComponent implements OnInit {
   createdFeedback = signal(false);
 
   ngOnInit() {
-    this.loadSkills();
-    // Re-fetch skills every time we navigate to this page so the spider chart
-    // reflects any level-ups that happened elsewhere (e.g. on day-view).
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd && event.urlAfterRedirects === '/skills') {
-        this.loadSkills();
-      }
-    });
+    // Load initial data on first visit
+    this.skillService.refresh();
   }
 
-  loadSkills() {
-    this.skillService.getSkills().subscribe({
-      next: skills => this.skills.set(skills),
-      error: err => console.error('Failed to load skills:', err)
-    });
-  }
+  // loadSkills removed — skills signal is shared via SkillService
 
   startEdit(skill: Skill) {
     this.editingId.set(skill.id);
@@ -346,7 +361,7 @@ export class SkillsPageComponent implements OnInit {
     const icon = this.editIcon().trim() || '⭐';
     if (!name) return;
     this.skillService.updateSkill(id, { name, description, icon }).subscribe({
-      next: () => { this.loadSkills(); this.cancelEdit(); },
+      next: () => this.cancelEdit(),
       error: err => console.error('Failed to save skill:', err)
     });
   }
@@ -356,7 +371,7 @@ export class SkillsPageComponent implements OnInit {
     if (!id) return;
     if (!confirm('Delete this skill?')) return;
     this.skillService.deleteSkill(id).subscribe({
-      next: () => { this.loadSkills(); this.cancelEdit(); },
+      next: () => this.cancelEdit(),
       error: err => console.error('Failed to delete skill:', err)
     });
   }
@@ -368,7 +383,6 @@ export class SkillsPageComponent implements OnInit {
     if (!name) return;
     this.skillService.createSkill({ name, description, icon }).subscribe({
       next: () => {
-        this.loadSkills();
         this.newSkillName.set('');
         this.newSkillDesc.set('');
         this.newSkillIcon.set('');

@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DevService } from '../../services/dev.service';
 import { TaskService } from '../../services/task.service';
 import { SkillService } from '../../services/skill.service';
@@ -17,13 +17,12 @@ import { Task, Skill } from '../../models';
         <div class="skew-heading-inner">DEV TOOLS</div>
       </div>
 
-      <!-- Back link -->
-      <a class="back-link" routerLink="/settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        Back to Settings
-      </a>
+      <!-- Sub-nav -->
+      <div class="settings-sub-nav">
+        <button class="sub-nav-item" (click)="navigateToSettings('appearance')">Appearance</button>
+        <button class="sub-nav-item" (click)="navigateToSettings('general')">General</button>
+        <button class="sub-nav-item active">Dev</button>
+      </div>
 
       <!-- Clear Database card -->
       <div class="dev-card p5-panel">
@@ -168,21 +167,32 @@ import { Task, Skill } from '../../models';
       padding: 20px;
       max-width: 600px;
     }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-family: var(--font-display);
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--color-text-dim);
-      text-decoration: none;
-      margin-bottom: 20px;
-      transition: color 0.1s;
+    .settings-sub-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border-left: 4px solid var(--color-primary);
     }
-    .back-link:hover {
-      color: var(--color-primary);
+    .sub-nav-item {
+      padding: 10px 20px;
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-text-dim);
+      border: 2px solid var(--color-border);
+      border-left: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.05s, color 0.05s;
+      background: transparent;
+    }
+    .sub-nav-item:hover,
+    .sub-nav-item.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
     }
     .page-title {
       font-family: var(--font-display);
@@ -344,6 +354,7 @@ export class SettingsDevComponent implements OnInit {
   private devService = inject(DevService);
   private taskService = inject(TaskService);
   private skillService = inject(SkillService);
+  private router = inject(Router);
 
   resetConfirmInput = signal('');
   deleteCheckbox = signal(false);
@@ -351,7 +362,8 @@ export class SettingsDevComponent implements OnInit {
   feedback = signal('');
   deleteAllCheckbox = signal('');
   resetSkillsCheckbox = signal(false);
-  skills = signal<Skill[]>([]);
+  // Use the shared skills signal from SkillService
+  skills = this.skillService.skills;
   modifySkillId = signal('');
   modifyDelta = signal('');
 
@@ -360,7 +372,7 @@ export class SettingsDevComponent implements OnInit {
 
   ngOnInit() {
     this.loadNonDefaultCount();
-    this.loadSkills();
+    this.skillService.refresh();
   }
 
   loadNonDefaultCount() {
@@ -373,20 +385,13 @@ export class SettingsDevComponent implements OnInit {
     });
   }
 
-  loadSkills() {
-    this.skillService.getSkills().subscribe({
-      next: skills => this.skills.set(skills),
-      error: err => console.error('Failed to load skills:', err)
-    });
-  }
-
   onResetDb() {
     if (this.resetConfirmInput() !== 'DELETE') return;
     this.devService.resetDatabase().subscribe({
       next: res => {
         this.showFeedback(res.message);
         this.resetConfirmInput.set('');
-        this.loadSkills();
+        this.skillService.refresh();
       },
       error: err => {
         console.error('Failed to reset database:', err);
@@ -430,7 +435,7 @@ export class SettingsDevComponent implements OnInit {
       next: res => {
         this.showFeedback(res.message);
         this.resetSkillsCheckbox.set(false);
-        this.loadSkills();
+        this.skillService.refresh();
       },
       error: err => {
         console.error('Failed to reset skills:', err);
@@ -447,7 +452,7 @@ export class SettingsDevComponent implements OnInit {
       next: res => {
         this.showFeedback(`${res.statId}: ${res.oldValue} → ${res.newValue} (tier ${res.oldTier} → ${res.newTier})`);
         this.modifyDelta.set('');
-        this.loadSkills();
+        this.skillService.refresh();
       },
       error: err => {
         console.error('Failed to modify points:', err);
@@ -460,5 +465,9 @@ export class SettingsDevComponent implements OnInit {
     if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout);
     this.feedback.set(msg);
     this.feedbackTimeout = setTimeout(() => this.feedback.set(''), 2500);
+  }
+
+  navigateToSettings(tab: 'appearance' | 'general') {
+    this.router.navigate(['/settings'], { queryParams: { tab } });
   }
 }

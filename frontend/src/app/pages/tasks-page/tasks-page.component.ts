@@ -283,7 +283,8 @@ export class TasksPageComponent implements OnInit {
   private taskService = inject(TaskService);
   private skillService = inject(SkillService);
 
-  skills = signal<Skill[]>([]);
+  // Use the shared skills signal from SkillService
+  skills = this.skillService.skills;
   allTasks = signal<Task[]>([]);
 
   editingTaskId = signal<string | null>(null);
@@ -300,15 +301,8 @@ export class TasksPageComponent implements OnInit {
   private readonly BUILT_IN_TASK_IDS = ['work', 'study', 'gym', 'social', 'hobbies'];
 
   ngOnInit() {
-    this.loadSkills();
+    this.skillService.refresh();
     this.loadTasks();
-  }
-
-  loadSkills() {
-    this.skillService.getSkills().subscribe({
-      next: s => this.skills.set(s),
-      error: err => console.error('Failed to load skills:', err)
-    });
   }
 
   loadTasks() {
