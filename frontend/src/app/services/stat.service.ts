@@ -42,6 +42,10 @@ export class StatService {
     return this.http.get<PeriodStats>(`/api/statistics/${period}`);
   }
 
+  getPopularTasks(period: string): Observable<{ mostUsed: { taskId: string; taskName: string; count: number }[]; leastUsed: { taskId: string; taskName: string; count: number }[] }> {
+    return this.http.get<{ mostUsed: { taskId: string; taskName: string; count: number }[]; leastUsed: { taskId: string; taskName: string; count: number }[] }>(`/api/statistics/popular-tasks?period=${period}`);
+  }
+
   emitTierUp(event: TierUpEvent) {
     this.tierUpSubject.next(event);
   }

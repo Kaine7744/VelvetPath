@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 
+// GET /api/statistics/popular-tasks?period=day|week|month|year
+router.get('/popular-tasks', async (req, res) => {
+  try {
+    const { period = 'week' } = req.query;
+    const result = await db.getPopularTasks(period);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/statistics/:period (day/week/month/year)
 router.get('/:period', async (req, res) => {
   try {

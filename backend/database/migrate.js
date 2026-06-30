@@ -28,9 +28,13 @@ async function migrate() {
       name TEXT NOT NULL UNIQUE,
       description TEXT,
       isDefault INTEGER DEFAULT 0,
-      currentValue INTEGER DEFAULT 0
+      currentValue INTEGER DEFAULT 0,
+      icon TEXT DEFAULT '⭐'
     )
   `);
+
+  // Add icon column to existing skills table (slice 14)
+  try { db.run("ALTER TABLE skills ADD COLUMN icon TEXT DEFAULT '⭐'"); } catch(e) { /* may already exist */ }
 
   // Tasks table
   db.run(`
@@ -85,17 +89,19 @@ async function migrate() {
 
   // Seed default skills (Persona 5 Royal)
   const defaultSkills = [
-    { id: 'guts', name: 'Guts', description: 'Courage and bravery' },
-    { id: 'courage', name: 'Courage', description: 'Willingness to take risks' },
-    { id: 'academics', name: 'Academics', description: 'Knowledge and learning' },
-    { id: 'kindness', name: 'Kindness', description: 'Compassion and empathy' },
-    { id: 'proficiency', name: 'Proficiency', description: 'Skill and dexterity' },
+    { id: 'guts',         name: 'Guts',         description: 'Courage and bravery',        icon: '⚔️' },
+    { id: 'courage',      name: 'Courage',      description: 'Willingness to take risks', icon: '💪' },
+    { id: 'academics',    name: 'Academics',    description: 'Knowledge and learning',    icon: '📚' },
+    { id: 'kindness',     name: 'Kindness',     description: 'Compassion and empathy',    icon: '💗' },
+    { id: 'proficiency',  name: 'Proficiency',  description: 'Skill and dexterity',       icon: '🔧' },
   ];
 
   for (const skill of defaultSkills) {
-    db.run(`INSERT OR IGNORE INTO skills (id, name, description, isDefault, currentValue) VALUES (?, ?, ?, 1, 0)`, [
-      skill.id, skill.name, skill.description
+    db.run(`INSERT OR IGNORE INTO skills (id, name, description, isDefault, currentValue, icon) VALUES (?, ?, ?, 1, 0, ?)`, [
+      skill.id, skill.name, skill.description, skill.icon
     ]);
+    // Also update icon for existing rows (in case skill existed before icon was added)
+    db.run(`UPDATE skills SET icon = ? WHERE id = ?`, [skill.icon, skill.id]);
   }
 
   // Seed default tasks

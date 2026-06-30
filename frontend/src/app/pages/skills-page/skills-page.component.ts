@@ -2,11 +2,12 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SkillService } from '../../services/skill.service';
 import { Skill } from '../../models';
+import { SpiderChartComponent } from '../../components/spider-chart/spider-chart.component';
 
 @Component({
   selector: 'app-skills-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SpiderChartComponent],
   template: `
     <div class="skills-page">
       <!-- Page header — calling card style -->
@@ -17,6 +18,11 @@ import { Skill } from '../../models';
         </div>
       </div>
 
+      <!-- Spider chart -->
+      <div class="chart-container">
+        <app-spider-chart [skills]="skills()" />
+      </div>
+
       <!-- Skills list — P5 vertical menu -->
       <div class="skills-menu p5-panel">
         <div class="menu-header">— SKILLS —</div>
@@ -25,6 +31,7 @@ import { Skill } from '../../models';
           <div class="skill-menu-item"
                [class.active]="editingId() === skill.id"
                (click)="startEdit(skill)">
+            <span class="skill-menu-icon">{{ skill.icon || '⭐' }}</span>
             <span class="skill-menu-name">{{ skill.name }}</span>
             <span class="skill-menu-value">{{ skill.currentValue }}</span>
           </div>
@@ -33,6 +40,15 @@ import { Skill } from '../../models';
         <!-- Add new skill -->
         @if (addingNew()) {
           <div class="skill-add-inline">
+            <div class="emoji-row">
+              <span class="emoji-label">ICON</span>
+              <input
+                type="emoji"
+                class="p5-input emoji-input"
+                [value]="newSkillIcon()"
+                (input)="newSkillIcon.set($any($event.target).value)"
+              />
+            </div>
             <input
               class="p5-input"
               placeholder="SKILL NAME"
@@ -47,12 +63,13 @@ import { Skill } from '../../models';
             />
             <div class="skill-add-actions">
               <button class="p5-btn p5-btn-confirm" (click)="addSkill()">CONFIRM</button>
-              <button class="p5-btn p5-btn-cancel" (click)="addingNew.set(false); newSkillName.set(''); newSkillDesc.set('')">ESCAPE</button>
+              <button class="p5-btn p5-btn-cancel" (click)="addingNew.set(false); newSkillName.set(''); newSkillDesc.set(''); newSkillIcon.set('')">ESCAPE</button>
             </div>
           </div>
         } @else {
           <div class="skill-menu-item add-item" (click)="addingNew.set(true)">
-            <span class="skill-menu-name">+ NEW SKILL</span>
+            <span class="skill-menu-icon">＋</span>
+            <span class="skill-menu-name">NEW SKILL</span>
           </div>
         }
       </div>
@@ -62,6 +79,15 @@ import { Skill } from '../../models';
         <div class="calling-card edit-panel">
           <div class="calling-card-label">▶ EDIT — {{ editingSkillName() }}</div>
           <div class="edit-form">
+            <div class="emoji-row">
+              <span class="emoji-label">ICON</span>
+              <input
+                type="emoji"
+                class="p5-input emoji-input"
+                [value]="editIcon()"
+                (input)="editIcon.set($any($event.target).value)"
+              />
+            </div>
             <input
               class="p5-input"
               placeholder="SKILL NAME"
@@ -93,10 +119,28 @@ import { Skill } from '../../models';
   styles: [`
     .skills-page {
       padding: 20px;
-      max-width: 520px;
+      max-width: 680px;
     }
     .header-card {
       margin-bottom: 16px;
+    }
+    .chart-container {
+      background: var(--color-card);
+      border: var(--card-border-width) var(--card-border-style) var(--color-border);
+      border-radius: var(--corner-radius);
+      backdrop-filter: blur(var(--glass-blur));
+      padding: 2rem;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .chart-container::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border: 1px solid var(--color-primary);
+      opacity: 0.2;
+      pointer-events: none;
+      border-radius: inherit;
     }
     .skills-menu {
       overflow: hidden;
@@ -135,12 +179,20 @@ import { Skill } from '../../models';
       background: var(--color-primary);
       color: #fff;
     }
+    .skill-menu-icon {
+      font-size: 1.2rem;
+      margin-right: 10px;
+      flex-shrink: 0;
+      width: 28px;
+      text-align: center;
+    }
     .skill-menu-name {
       font-family: var(--font-display);
       font-size: 1rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--color-text);
+      flex: 1;
     }
     .skill-menu-item:hover .skill-menu-name,
     .skill-menu-item.active .skill-menu-name {
@@ -162,6 +214,26 @@ import { Skill } from '../../models';
     }
     .skill-add-inline .p5-input {
       margin-bottom: 8px;
+    }
+    .emoji-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .emoji-label {
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--color-text-dim);
+      width: 40px;
+      flex-shrink: 0;
+    }
+    .emoji-input {
+      width: 56px;
+      font-size: 1.2rem;
+      padding: 4px 8px;
+      text-align: center;
     }
     .skill-add-actions {
       display: flex;
@@ -221,10 +293,12 @@ export class SkillsPageComponent implements OnInit {
   editingSkillDefault = signal(false);
   editName = signal('');
   editDesc = signal('');
+  editIcon = signal('');
 
   addingNew = signal(false);
   newSkillName = signal('');
   newSkillDesc = signal('');
+  newSkillIcon = signal('');
   createdFeedback = signal(false);
 
   ngOnInit() {
@@ -244,6 +318,7 @@ export class SkillsPageComponent implements OnInit {
     this.editingSkillDefault.set(!!skill.isDefault);
     this.editName.set(skill.name);
     this.editDesc.set(skill.description);
+    this.editIcon.set(skill.icon || '⭐');
     this.addingNew.set(false);
   }
 
@@ -251,6 +326,7 @@ export class SkillsPageComponent implements OnInit {
     this.editingId.set(null);
     this.editName.set('');
     this.editDesc.set('');
+    this.editIcon.set('');
   }
 
   saveSkill() {
@@ -258,8 +334,9 @@ export class SkillsPageComponent implements OnInit {
     if (!id) return;
     const name = this.editName().trim();
     const description = this.editDesc().trim();
+    const icon = this.editIcon().trim() || '⭐';
     if (!name) return;
-    this.skillService.updateSkill(id, { name, description }).subscribe({
+    this.skillService.updateSkill(id, { name, description, icon }).subscribe({
       next: () => { this.loadSkills(); this.cancelEdit(); },
       error: err => console.error('Failed to save skill:', err)
     });
@@ -278,12 +355,14 @@ export class SkillsPageComponent implements OnInit {
   addSkill() {
     const name = this.newSkillName().trim();
     const description = this.newSkillDesc().trim();
+    const icon = this.newSkillIcon().trim() || '⭐';
     if (!name) return;
-    this.skillService.createSkill({ name, description }).subscribe({
+    this.skillService.createSkill({ name, description, icon }).subscribe({
       next: () => {
         this.loadSkills();
         this.newSkillName.set('');
         this.newSkillDesc.set('');
+        this.newSkillIcon.set('');
         this.addingNew.set(false);
         this.createdFeedback.set(true);
         setTimeout(() => this.createdFeedback.set(false), 2000);

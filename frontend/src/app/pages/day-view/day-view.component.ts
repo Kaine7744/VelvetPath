@@ -27,8 +27,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
           </svg>
         </button>
         <div class="date-display">
-          <span class="day-name">{{ centerDate() | date:'EEEE' }}</span>
-          <span class="day-full">{{ centerDate() | date:'MMMM d, y' }}</span>
+          <span class="day-range">{{ getDateRangeLabel() }}</span>
         </div>
         <button class="nav-btn" (click)="nextDay()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -38,10 +37,10 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <!-- Recurring Tasks for center date -->
+      <!-- Recurring Tasks for visible days -->
       @if (recurringForCenter().length > 0) {
         <div class="recurring-section">
-          <div class="recurring-label">— RECURRING TODAY —</div>
+          <div class="recurring-label">— RECURRING —</div>
           <div class="recurring-pills">
             @for (r of recurringForCenter(); track r.taskId + r.slot) {
               <div class="recurring-pill">
@@ -111,7 +110,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     .page-title {
       font-family: var(--font-display);
       font-weight: 900;
-      font-size: 3rem;
+      font-size: calc(3rem * var(--font-display-scale, 1));
       color: var(--color-primary);
       letter-spacing: 0.15em;
       text-shadow: 0 0 30px var(--color-glow);
@@ -151,23 +150,13 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       flex: 1;
       text-align: center;
     }
-    .day-name {
+    .day-range {
       display: block;
-      font-size: 0.7rem;
-      font-family: var(--font-display);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.25em;
-      color: var(--color-primary);
-      margin-bottom: 0.25rem;
-    }
-    .day-full {
-      display: block;
-      font-size: 1.5rem;
+      font-size: calc(1.2rem * var(--font-display-scale, 1));
       font-family: var(--font-display);
       font-weight: 900;
       color: var(--color-text);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
     .today-btn {
       padding: 10px 20px;
@@ -191,6 +180,9 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
+      border: var(--card-border-width) var(--card-border-style) var(--color-primary);
+      padding: 1rem;
+      background: var(--color-surface);
     }
     .day-column {
       display: flex;
@@ -217,7 +209,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
     }
     .day-num {
       font-family: var(--font-display);
-      font-size: 1.2rem;
+      font-size: calc(1.2rem * var(--font-display-scale, 1));
       font-weight: 900;
       color: var(--color-text);
     }
@@ -344,6 +336,27 @@ export class DayViewComponent implements OnInit {
 
   isToday(dateStr: string): boolean {
     return dateStr === this.toDateString(new Date());
+  }
+
+  getDateRangeLabel(): string {
+    const days = this.daysData();
+    if (days.length === 0) return '';
+    const first = days[0].date;
+    const last = days[days.length - 1].date;
+    if (first === last) {
+      // Single day — show full date
+      const d = new Date(first);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    // Range — show "Jun 29 – Jul 1" style
+    const firstDate = new Date(first);
+    const lastDate = new Date(last);
+    const firstStr = firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const lastStr = lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (firstDate.getFullYear() === lastDate.getFullYear()) {
+      return `${firstStr} – ${lastStr}`;
+    }
+    return `${firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${lastStr}`;
   }
 
   onSlotTaskSelected(date: string, slotName: 'morning' | 'afternoon' | 'evening', taskId: string | null) {

@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 // POST /api/skills
 router.post('/', async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const skill = await db.createSkill({ name, description });
+    const { name, description, icon } = req.body;
+    const skill = await db.createSkill({ name, description, icon });
     res.json(skill);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -26,8 +26,8 @@ router.post('/', async (req, res) => {
 // PUT /api/skills/:id
 router.put('/:id', async (req, res) => {
   try {
-    const { name, description } = req.body;
-    await db.updateSkill(req.params.id, { name, description });
+    const { name, description, icon } = req.body;
+    await db.updateSkill(req.params.id, { name, description, icon });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

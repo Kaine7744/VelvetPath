@@ -102,7 +102,7 @@
 
 ---
 
-## 📋 Slice 7 — Statistics Dashboard (Detailed)
+## ✅ Slice 7 — Statistics Dashboard
 **Status:** Backlog
 
 ### Features
@@ -125,8 +125,8 @@
 
 ---
 
-## 📋 Slice 9 — Recurring Tasks Frontend
-**Status:** Backlog
+## ✅ Slice 9 — Recurring Tasks Frontend
+**Status:** Completed
 
 ### Overview
 Renamed "Templates" → "Recurring Tasks" throughout the UI. Add a visible "Recurring Today" section on the Day Planner so users can see which recurring tasks auto-fill the current day.
@@ -184,13 +184,66 @@ Improve task lifecycle management on the Day Planner. Currently tasks can be pla
 ---
 
 ## ✅ Slice 11 — Spider Chart Dynamic Scale 2
+**Status:** Completed (`b3ca577`)
+
+### Fix
+- Dynamic `max` — chart scale now uses `Math.ceil(highestStatValue / 100) * 100` instead of hardcoded `100`
+- Tier badge (centered "★ ×N") removed from spider chart overlay
+
+### Known Bug (next session)
+- **Level-up reset**: When a stat levels up (reaches 100, 200, etc.) the chart polygon briefly shows 0 before recovering
+  - `getSkillValue()` at exact multiples of 100 returns 0 instead of 100 → chart drops to center
+  - Sometimes only triggers at 101 instead of 100 — timing inconsistent
+  - The ceiling increases correctly, but the stat value visualization resets to 0 at the boundary
+  - Need to: ensure stat value stays at edge (100/200/etc.) during the level-up moment, not 0
+
+---
+
+## ✅ Slice 12 — Spider Chart Level-Up Fix
 **Status:** Completed
 
 ### Fix
-- Dynamic `max` — chart scale now uses `Math.ceil(highestStatValue / 100) * 100 + 100` instead of hardcoded `100`
-- Tier badge (centered "★ ×N") removed from spider chart overlay
+- `getSkillValue()`: returns 100 at exact tier boundaries (was: 0) — polygon stays at edge
+- `getScaleMax()`: at exact tier boundary, returns `maxValue + 100` (one full extra tier headroom) — was accidentally reverted in `b3ca577`, now restored
+- Stat at 99: chart shows ~99% (near edge) ✓
+- Stat at 100: chart shows 100% (at edge) ✓ — ceiling shifts to 200
+- Stat at 101: chart shows ~50% (halfway through tier 2) ✓
 
-## 📋 Slice 12 — Cleanup UI and Other
+### Files
+- `frontend/src/app/components/spider-chart/spider-chart.component.ts`
+
+---
+
+## ✅ Slice 13 — Statistics Dashboard
+**Status:** Completed
+
+### Overview
+Wire up real data for the existing `GET /api/statistics/:period` stub and extend the existing `StatsPageComponent` with period tabs + completion rate + streak.
+
+### Backend
+- [x] `db.getStatistics(period, { startDate, endDate })` — real queries for completion rate, bySlot breakdown, streak counter
+- [x] `GET /api/statistics/:period` — wire up real data
+
+### Frontend
+- [x] `StatService.getStatistics(period)` — new method
+- [x] Period tabs: DAY | WEEK | MONTH | YEAR
+- [x] Completion Rate card: `XX% COMPLETED (N/N SLOTS)`
+- [x] Streak counter: `🔥 X-DAY STREAK`
+- [x] Today's gains (day view only)
+
+### Out of Scope
+- Historical stat-growth chart
+- Completion-rate line chart
+- Custom date picker
+
+### Files
+- `backend/src/database/db.js` — implement `getStatistics()`
+- `frontend/src/app/services/stat.service.ts` — add `getStatistics()`
+- `frontend/src/app/pages/stats-page/stats-page.component.ts` — extend with period tabs + cards
+
+---
+
+## 📋 Slice 14 — UI Cleanup & Polish
 **Status:** Backlog
 
 ### Features
@@ -199,9 +252,30 @@ Improve task lifecycle management on the Day Planner. Currently tasks can be pla
 - [ ] Remove duplicate CSS from components (drip-divider, etc.)
 - [ ] Fix any remaining UI glitches and inconsistencies
 - [ ] Remove unused CSS rules
-- [ ] Cleanup Task check button and redo button
-- [ ] Implement "Recurring Today" more cleanly, e.g small box to the right of day date
 - [ ] Design UI closer to Persona Games
+
+---
+
+## 📋 Slice 15 — Full App Polish
+**Status:** Backlog
+
+### Features
+- [ ] "Recurring Today" placement — move to a cleaner position (e.g. small box to the right of day date)
+- [ ] Custom Stats creation (beyond the 5 defaults) — O1
+- [ ] Templates with end-date — O2
+- [ ] "Today Summary" view — O3
+
+---
+
+## Misbehavior Tally
+
+| # | Slice | Issue |
+|---|-------|-------|
+| M1 | Slice 6 | Settings sub-nav (Theme/General) disappears when navigating to `/settings/dev` — no way to get back without using browser back |
+| M2 | Slice 3 | Spider chart renders nothing when all stats are 0 — could be considered fine, but noted |
+| M3 | Slice 3 | "VP" logo in top-left looks off/wrong |
+| M4 | Slice 3 | Colored border boxes around day planner (red=P5, yellow=P4, blue=P3) — inconsistent appearance |
+| M5 | Slice 3 | Page switching animations work on P5 but not P4/P3 — inconsistent |
 
 ---
 

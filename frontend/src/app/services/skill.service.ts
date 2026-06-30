@@ -11,11 +11,11 @@ export class SkillService {
     return this.http.get<Skill[]>('/api/skills');
   }
 
-  createSkill(body: { name: string; description?: string }): Observable<Skill> {
+  createSkill(body: { name: string; description?: string; icon?: string }): Observable<Skill> {
     return this.http.post<Skill>('/api/skills', body);
   }
 
-  updateSkill(id: string, body: { name?: string; description?: string }): Observable<void> {
+  updateSkill(id: string, body: { name?: string; description?: string; icon?: string }): Observable<void> {
     return this.http.put<void>(`/api/skills/${id}`, body);
   }
 

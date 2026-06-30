@@ -339,21 +339,22 @@ const dbModule = {
     return skills;
   },
 
-  async createSkill({ name, description }) {
+  async createSkill({ name, description, icon }) {
     await getDb();
     const id = name.toLowerCase().replace(/\s+/g, '-');
-    db.run(`INSERT INTO skills (id, name, description, isDefault, currentValue) VALUES (?, ?, ?, 0, 0)`, [
-      id, name, description || ''
+    db.run(`INSERT INTO skills (id, name, description, isDefault, currentValue, icon) VALUES (?, ?, ?, 0, 0, ?)`, [
+      id, name, description || '', icon || '⭐'
     ]);
     saveDb();
-    return { id, name, description, isDefault: false, currentValue: 0 };
+    return { id, name, description, isDefault: false, currentValue: 0, icon: icon || '⭐' };
   },
 
-  async updateSkill(id, { name, description }) {
+  async updateSkill(id, { name, description, icon }) {
     await getDb();
     const updates = [], values = [];
     if (name !== undefined) { updates.push('name = ?'); values.push(name); }
     if (description !== undefined) { updates.push('description = ?'); values.push(description); }
+    if (icon !== undefined) { updates.push('icon = ?'); values.push(icon || '⭐'); }
     if (!updates.length) return;
     values.push(id);
     db.run(`UPDATE skills SET ${updates.join(', ')} WHERE id = ?`, values);
@@ -546,6 +547,32 @@ const dbModule = {
       }
     }
     return streak;
+  },
+
+  async getPopularTasks(period) {
+    const { start, end } = this.computeDateRange(period);
+    const days = await this.getDaysRange(start, end);
+    const taskCounts = {};
+
+    for (const day of days) {
+      for (const slotName of ['morning', 'afternoon', 'evening']) {
+        const slot = day[slotName];
+        if (slot.status === 'set' && slot.completed && slot.taskId) {
+          taskCounts[slot.taskId] = (taskCounts[slot.taskId] || 0) + 1;
+        }
+      }
+    }
+
+    const allTasks = await this.getAllTasks();
+    const tasksMap = Object.fromEntries(allTasks.map(t => [t.id, t]));
+
+    const entries = Object.entries(taskCounts)
+      .map(([taskId, count]) => ({ taskId, taskName: tasksMap[taskId]?.name || taskId, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const mostUsed = entries.slice(0, 3);
+    const leastUsed = entries.slice(-3).reverse();
+    return { mostUsed, leastUsed };
   },
 
   // ============ DEV TOOLS ============

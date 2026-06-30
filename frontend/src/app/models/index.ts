@@ -44,6 +44,7 @@ export interface Skill {
   description: string;
   isDefault: boolean;
   currentValue: number;
+  icon?: string;
 }
 
 // Stat is an alias for Skill (the backend calls them skills, the frontend calls them stats)

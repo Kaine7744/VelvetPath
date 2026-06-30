@@ -1,15 +1,18 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatService, PeriodStats } from '../../services/stat.service';
-import { Stat } from '../../models';
-import { SpiderChartComponent } from '../../components/spider-chart/spider-chart.component';
 
 type Period = 'day' | 'week' | 'month' | 'year';
+
+interface PopularTasks {
+  mostUsed: { taskId: string; taskName: string; count: number }[];
+  leastUsed: { taskId: string; taskName: string; count: number }[];
+}
 
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [CommonModule, SpiderChartComponent],
+  imports: [CommonModule],
   template: `
     <div class="stats-page">
       <div class="page-title">STATS</div>
@@ -56,24 +59,39 @@ type Period = 'day' | 'week' | 'month' | 'year';
         }
       </div>
 
-      <div class="chart-container">
-        <app-spider-chart [skills]="stats()" />
-      </div>
-
-      <div class="stats-grid">
-        @for (stat of stats(); track stat.id) {
-          <div class="stat-card" [attr.data-stat]="stat.id">
-            <div class="stat-icon">{{ getStatIcon(stat.id) }}</div>
-            <div class="stat-info">
-              <div class="stat-name">{{ stat.name }}</div>
-              <div class="stat-bar-track">
-                <div class="stat-bar-fill" [style.width.%]="getInnerValue(stat.currentValue)" [style.background]="getStatColor(stat.id)"></div>
-              </div>
-            </div>
-            <div class="stat-tier">★×{{ getTier(stat.currentValue) }}</div>
-            <div class="stat-value">{{ stat.currentValue }}</div>
+      <!-- Popular Tasks -->
+      <div class="popular-tasks-card">
+        <div class="popular-header">
+          <div class="popular-col-label">MOST COMPLETED THIS {{ activePeriod().toUpperCase() }}</div>
+          <div class="popular-col-label right">LEAST COMPLETED</div>
+        </div>
+        <div class="popular-body">
+          <div class="popular-col">
+            @if (popularTasks()?.mostUsed?.length) {
+              @for (item of popularTasks()!.mostUsed; track item.taskId) {
+                <div class="popular-row">
+                  <span class="popular-name">{{ item.taskName }}</span>
+                  <span class="popular-count">{{ item.count }}×</span>
+                </div>
+              }
+            } @else {
+              <div class="popular-empty">—</div>
+            }
           </div>
-        }
+          <div class="popular-divider"></div>
+          <div class="popular-col right">
+            @if (popularTasks()?.leastUsed?.length) {
+              @for (item of popularTasks()!.leastUsed; track item.taskId) {
+                <div class="popular-row">
+                  <span class="popular-name">{{ item.taskName }}</span>
+                  <span class="popular-count">{{ item.count }}×</span>
+                </div>
+              }
+            } @else {
+              <div class="popular-empty">—</div>
+            }
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -200,102 +218,88 @@ type Period = 'day' | 'week' | 'month' | 'year';
       color: var(--color-primary);
       text-shadow: 0 0 10px var(--color-glow);
     }
-    .chart-container {
-      background: var(--color-card);
-      border: var(--card-border-width) var(--card-border-style) var(--color-border);
-      border-radius: var(--corner-radius);
-      backdrop-filter: blur(var(--glass-blur));
-      padding: 2.5rem;
-      margin-bottom: 2rem;
-      position: relative;
-    }
-    .chart-container::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border: 1px solid var(--color-primary);
-      opacity: 0.2;
-      pointer-events: none;
-      border-radius: inherit;
-    }
-    .stats-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .stat-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.25rem;
+    /* Popular Tasks */
+    .popular-tasks-card {
       background: var(--color-card);
       border: 1px solid var(--color-border);
-      transition: all 0.2s ease;
+      padding: 1.5rem;
     }
-    .stat-card:hover {
-      border-color: var(--stat-color);
-      box-shadow: 0 0 20px var(--stat-glow);
+    .popular-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
     }
-    .stat-icon {
-      font-size: 1.6rem;
-      width: 36px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .stat-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .stat-name {
+    .popular-col-label {
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      color: var(--color-text);
-      text-transform: var(--text-transform);
-      margin-bottom: 0.4rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--color-text-dim);
+      text-transform: uppercase;
     }
-    .stat-bar-track {
-      height: 6px;
-      background: color-mix(in srgb, var(--color-text) 8%, transparent);
-      overflow: hidden;
-    }
-    .stat-bar-fill {
-      height: 100%;
-      transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-      box-shadow: 0 0 8px currentColor;
-    }
-    .stat-tier {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 1.2rem;
-      color: var(--color-primary);
-      text-shadow: 0 0 20px var(--color-glow);
-      width: 48px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .stat-value {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 1.5rem;
-      color: var(--color-text);
-      width: 52px;
+    .popular-col-label.right {
       text-align: right;
-      flex-shrink: 0;
     }
-    /* Stat colors */
-    .stat-card[data-stat="academics"] { --stat-color: #1565c0; --stat-glow: rgba(21,101,192,0.4); }
-    .stat-card[data-stat="proficiency"] { --stat-color: #2e7d32; --stat-glow: rgba(46,125,50,0.4); }
-    .stat-card[data-stat="kindness"] { --stat-color: #c2185b; --stat-glow: rgba(194,24,91,0.4); }
-    .stat-card[data-stat="guts"] { --stat-color: #e65100; --stat-glow: rgba(230,81,0,0.4); }
-    .stat-card[data-stat="courage"] { --stat-color: #f9a825; --stat-glow: rgba(249,168,37,0.4); }
+    .popular-body {
+      display: flex;
+      gap: 0;
+    }
+    .popular-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .popular-col.right {
+      text-align: right;
+    }
+    .popular-divider {
+      width: 1px;
+      background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+      margin: 0 1.5rem;
+    }
+    .popular-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .popular-col.right .popular-row {
+      flex-direction: row-reverse;
+    }
+    .popular-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      color: var(--color-text);
+      text-transform: uppercase;
+    }
+    .popular-count {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 0.9rem;
+      color: var(--color-primary);
+      text-shadow: 0 0 10px var(--color-glow);
+      min-width: 32px;
+    }
+    .popular-col.right .popular-count {
+      text-align: left;
+    }
+    .popular-empty {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      color: var(--color-text-dim);
+      opacity: 0.4;
+    }
   `]
 })
 export class StatsPageComponent implements OnInit {
   private statService = inject(StatService);
-  stats = signal<Stat[]>([]);
+  stats = signal<any[]>([]);
   periodStats = signal<PeriodStats | null>(null);
+  popularTasks = signal<PopularTasks | null>(null);
   activePeriod = signal<Period>('week');
   periods: Period[] = ['day', 'week', 'month', 'year'];
 
@@ -309,33 +313,17 @@ export class StatsPageComponent implements OnInit {
   setPeriod(period: Period) {
     this.activePeriod.set(period);
     this.loadPeriodStats(period);
+    this.loadPopularTasks(period);
   }
 
   private loadPeriodStats(period: Period) {
     this.statService.getStatistics(period).subscribe(stats => this.periodStats.set(stats));
   }
 
-  getStatIcon(statId: string): string {
-    const icons: Record<string, string> = {
-      academics: '📚', proficiency: '🔧', kindness: '💗', guts: '⚔️', courage: '💪',
-    };
-    return icons[statId] || '⭐';
-  }
-
-  getStatColor(statId: string): string {
-    const colors: Record<string, string> = {
-      academics: '#1565c0', proficiency: '#2e7d32', kindness: '#c2185b', guts: '#e65100', courage: '#f9a825',
-    };
-    return colors[statId] || '#e91e63';
-  }
-
-  getTier(value: number): number {
-    return Math.floor(value / 100) + 1;
-  }
-
-  getInnerValue(value: number): number {
-    if (value === 0) return 0;
-    const inner = value % 100;
-    return inner === 0 ? 100 : inner;
+  private loadPopularTasks(period: Period) {
+    this.statService.getPopularTasks(period).subscribe({
+      next: result => this.popularTasks.set(result),
+      error: err => console.error('Failed to load popular tasks:', err)
+    });
   }
 }
