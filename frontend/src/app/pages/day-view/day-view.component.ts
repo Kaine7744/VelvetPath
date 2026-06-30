@@ -36,7 +36,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <div class="days-scroll-container" #scrollContainer>
+      <div class="days-scroll-container" #scrollContainer (scroll)="onScroll()">
         <div class="days-grid">
           @for (day of daysData(); track day.date; let i = $index) {
             <div class="day-column">
@@ -281,6 +281,10 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   morningEnabled = signal(true);
   eveningEnabled = signal(true);
 
+  private lastScrollLeft = 0;
+  private isScrolling = false;
+  private columnWidth = 236; // px — minmax(220px, 1fr) + gap approximation
+
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
     this.settingsService.getSettings().subscribe({
@@ -296,7 +300,37 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {}
 
-  private loadDays() {
+  onScroll() {
+    if (this.isScrolling) return;
+    const el = this.scrollContainer?.nativeElement;
+    if (!el) return;
+
+    const delta = el.scrollLeft - this.lastScrollLeft;
+
+    // Ignore tiny scrolls (browser momentum noise)
+    if (Math.abs(delta) < 20) return;
+
+    this.isScrolling = true;
+
+    if (delta > 0) {
+      // Scrolling right → next day
+      this.centerDate.set(this.offsetDate(this.centerDate(), 1));
+    } else {
+      // Scrolling left → previous day
+      this.centerDate.set(this.offsetDate(this.centerDate(), -1));
+    }
+
+    this.loadDays(() => {
+      // After reload, restore scroll position so center column stays in view
+      if (el) {
+        el.scrollLeft = this.columnWidth;
+      }
+      this.lastScrollLeft = el ? el.scrollLeft : this.columnWidth;
+      this.isScrolling = false;
+    });
+  }
+
+  private loadDays(onDone?: () => void) {
     const center = this.centerDate();
     const start = this.offsetDate(center, -1);
     const end = this.offsetDate(center, 1);
@@ -304,6 +338,7 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(days => {
         this.daysData.set(days);
         this.loadRecurringForDay(this.toDateString(center));
+        onDone?.();
       });
   }
 
@@ -322,17 +357,35 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   previousDay() {
     this.centerDate.set(this.offsetDate(this.centerDate(), -1));
-    this.loadDays();
+    this.loadDays(() => {
+      const el = this.scrollContainer?.nativeElement;
+      if (el) {
+        el.scrollLeft = this.columnWidth;
+        this.lastScrollLeft = el.scrollLeft;
+      }
+    });
   }
 
   nextDay() {
     this.centerDate.set(this.offsetDate(this.centerDate(), 1));
-    this.loadDays();
+    this.loadDays(() => {
+      const el = this.scrollContainer?.nativeElement;
+      if (el) {
+        el.scrollLeft = this.columnWidth;
+        this.lastScrollLeft = el.scrollLeft;
+      }
+    });
   }
 
   goToToday() {
     this.centerDate.set(new Date());
-    this.loadDays();
+    this.loadDays(() => {
+      const el = this.scrollContainer?.nativeElement;
+      if (el) {
+        el.scrollLeft = this.columnWidth;
+        this.lastScrollLeft = el.scrollLeft;
+      }
+    });
   }
 
   isToday(dateStr: string): boolean {
@@ -340,7 +393,7 @@ export class DayViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCenterDateLabel(): string {
-    const day = this.daysData()[1]; // always the center day
+    const day = this.daysData()[1];
     if (!day) return '';
     const d = new Date(day.date);
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
