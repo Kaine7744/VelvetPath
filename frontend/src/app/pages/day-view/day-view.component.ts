@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
@@ -36,7 +36,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
         <button class="today-btn" (click)="goToToday()">TODAY</button>
       </div>
 
-      <div class="days-scroll-container" (wheel)="onWheel($event)">
+      <div class="days-scroll-container">
         <div class="days-grid">
           @for (day of daysData(); track day.date; let i = $index) {
             <div class="day-column">
@@ -44,17 +44,14 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
                 <div class="day-meta">
                   <span class="day-label">{{ day.date | date:'EEE' }}</span>
                   <span class="day-num">{{ day.date | date:'d' }}</span>
+                  @if (recurringPerDay()[day.date]?.length) {
+                    <div class="day-recurring-pills">
+                      @for (r of recurringPerDay()[day.date]; track r.taskId + r.slot) {
+                        <span class="recurring-dot" [title]="r.taskName + ' (' + r.slot + ')'"></span>
+                      }
+                    </div>
+                  }
                 </div>
-                @if (i === 1 && recurringForCenter()?.length) {
-                  <div class="day-recurring-pills">
-                    @for (r of recurringForCenter(); track r.taskId + r.slot) {
-                      <div class="day-recurring-pill">
-                        <span class="pill-slot">{{ r.slot.charAt(0).toUpperCase() }}</span>
-                        <span class="pill-name">{{ r.taskName || '—' }}</span>
-                      </div>
-                    }
-                  </div>
-                }
               </div>
               <div class="slots-wrapper skew-outer">
                 <div class="slots-inner">
@@ -175,7 +172,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       box-shadow: 3px 3px 0 var(--color-primary);
     }
     .days-scroll-container {
-      /* no overflow scrollbar — wheel events only */
+      /* wheel events captured, no overflow scrollbar */
     }
     .days-grid {
       display: grid;
@@ -191,15 +188,13 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       gap: 0.5rem;
     }
     .day-header {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
       padding: 0 0.5rem;
     }
     .day-meta {
       display: flex;
       align-items: baseline;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
     .day-header.today .day-label,
     .day-header.today .day-num {
@@ -220,35 +215,20 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
       color: var(--color-text);
     }
 
-    /* Recurring pills — inside center day-header only (index 1) */
+    /* Recurring dots — in the day-meta row next to the date */
     .day-recurring-pills {
       display: flex;
-      flex-wrap: wrap;
       gap: 4px;
-    }
-    .day-recurring-pill {
-      display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
-      border-left: 2px solid var(--color-primary);
-      background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+      margin-left: 4px;
     }
-    .pill-slot {
-      font-family: var(--font-display);
-      font-size: 0.55rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--color-primary);
-    }
-    .pill-name {
-      font-family: var(--font-display);
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--color-text);
+    .recurring-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      opacity: 0.7;
     }
 
     .slots-wrapper {
@@ -272,12 +252,12 @@ export class DayViewComponent implements OnInit {
   centerDate = signal(new Date());
   daysData = signal<Day[]>([]);
   tasks = signal<any[]>([]);
-  recurringForCenter = signal<RecurringTask[]>([]);
+  recurringPerDay = signal<Record<string, RecurringTask[]>>({});
   morningEnabled = signal(true);
   eveningEnabled = signal(true);
 
   private scrollAccumulator = 0;
-  private readonly DAY_THRESHOLD = 30; // px before day changes
+  private readonly DAY_THRESHOLD = 60; // px before day changes — slower
 
   ngOnInit() {
     this.taskService.getTasks().subscribe(tasks => this.tasks.set(tasks));
@@ -290,18 +270,18 @@ export class DayViewComponent implements OnInit {
     this.loadDays();
   }
 
+  @HostListener('window:wheel', ['$event'])
   onWheel(event: WheelEvent) {
     event.preventDefault();
 
-    // Horizontal delta preferred, fall back to vertical
     const delta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
-    if (Math.abs(delta) < 3) return; // ignore very small movements
+    if (Math.abs(delta) < 3) return;
 
     this.scrollAccumulator += delta;
 
     if (Math.abs(this.scrollAccumulator) >= this.DAY_THRESHOLD) {
       const direction = this.scrollAccumulator > 0 ? 1 : -1;
-      this.scrollAccumulator = 0; // reset accumulator
+      this.scrollAccumulator = 0;
 
       if (direction > 0) {
         this.centerDate.set(this.offsetDate(this.centerDate(), 1));
@@ -310,8 +290,18 @@ export class DayViewComponent implements OnInit {
       }
 
       this.loadDays();
-      navigator.vibrate?.([10]); // haptic — silently ignored on unsupported devices
+      this.triggerHaptic();
     }
+  }
+
+  private triggerHaptic() {
+    try {
+      (navigator as any).vibrate?.([10]);
+    } catch {}
+    // Fallback: WebKit on iOS/macOS
+    try {
+      (window as any).webkit?.messageHandlers?.vibrate?.postMessage?.([10]);
+    } catch {}
   }
 
   private loadDays() {
@@ -321,15 +311,27 @@ export class DayViewComponent implements OnInit {
     this.dayService.getDays(this.toDateString(start), this.toDateString(end))
       .subscribe(days => {
         this.daysData.set(days);
-        this.loadRecurringForDay(this.toDateString(center));
+        this.loadRecurringForDays(days.map(d => d.date));
       });
   }
 
-  private loadRecurringForDay(dateStr: string) {
-    this.templateService.getTemplatesForDate(dateStr).subscribe({
-      next: r => this.recurringForCenter.set(r),
-      error: () => this.recurringForCenter.set([])
-    });
+  private loadRecurringForDays(dates: string[]) {
+    const requests = dates.map(d => this.templateService.getTemplatesForDate(d));
+    // Load all recurring in parallel, build map by date
+    Promise.all(requests.map((req, i) =>
+      new Promise<void>((resolve) => {
+        req.subscribe({
+          next: (r: RecurringTask[]) => {
+            this.recurringPerDay.update(map => ({ ...map, [dates[i]]: r }));
+            resolve();
+          },
+          error: () => {
+            this.recurringPerDay.update(map => ({ ...map, [dates[i]]: [] }));
+            resolve();
+          }
+        });
+      })
+    )).then();
   }
 
   private offsetDate(date: Date, days: number): Date {
@@ -341,19 +343,19 @@ export class DayViewComponent implements OnInit {
   previousDay() {
     this.centerDate.set(this.offsetDate(this.centerDate(), -1));
     this.loadDays();
-    navigator.vibrate?.([10]);
+    this.triggerHaptic();
   }
 
   nextDay() {
     this.centerDate.set(this.offsetDate(this.centerDate(), 1));
     this.loadDays();
-    navigator.vibrate?.([10]);
+    this.triggerHaptic();
   }
 
   goToToday() {
     this.centerDate.set(new Date());
     this.loadDays();
-    navigator.vibrate?.([10]);
+    this.triggerHaptic();
   }
 
   isToday(dateStr: string): boolean {
