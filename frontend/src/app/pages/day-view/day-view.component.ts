@@ -45,7 +45,7 @@ import { SlotCardComponent } from '../../components/slot-card/slot-card.componen
                 <div class="day-meta">
                   <span class="day-label">{{ day.date | date:'EEE' }}</span>
                   <span class="day-num">{{ day.date | date:'d' }}</span>
-                  @if (recurringPerDay()[day.date]?.length) {
+                  @if (recurringPerDay()[day.date].length) {
                     <div class="day-recurring-pills">
                       @for (r of recurringPerDay()[day.date]; track r.taskId + r.slot) {
                         <span class="recurring-pill" [title]="r.taskName + ' (' + r.slot + ')'">{{ r.taskName }}</span>

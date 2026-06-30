@@ -174,16 +174,9 @@ export class SpiderChartComponent implements AfterViewInit, OnDestroy {
     }
 
     this.chart.data.labels = this.getOrderedLabels();
-<<<<<<< HEAD
     this.chart.data.datasets[0].data = this.getOrderedData();
     (this.chart.data.datasets[0] as ChartDataset<'radar'>).pointBackgroundColor = this.getOrderedColors();
     (this.chart.options.scales as any)['r'].max = this.getScaleMax();
-=======
-    const newData = this.getOrderedData();
-    const dataset = this.chart.data.datasets[0] as ChartDataset<'radar'>;
-    dataset.data.splice(0, dataset.data.length, ...newData);
-    dataset.pointBackgroundColor = this.getOrderedColors();
->>>>>>> 707be20 (final)
     this.chart.update();
   }
 
