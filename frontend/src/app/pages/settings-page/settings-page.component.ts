@@ -16,6 +16,14 @@ import { isDevMode } from '@angular/core';
         <div class="skew-heading-inner">SETTINGS</div>
       </div>
 
+      <!-- Back link -->
+      <a class="back-link" routerLink="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Planner
+      </a>
+
       <!-- Sub-nav -->
       <div class="settings-sub-nav">
         <button
@@ -109,6 +117,22 @@ import { isDevMode } from '@angular/core';
     .settings-page {
       padding: 20px;
       max-width: 600px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--color-text-dim);
+      text-decoration: none;
+      margin-bottom: 20px;
+      transition: color 0.1s;
+    }
+    .back-link:hover {
+      color: var(--color-primary);
     }
     .page-title {
       font-family: var(--font-display);

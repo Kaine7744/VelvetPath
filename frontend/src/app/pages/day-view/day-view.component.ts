@@ -4,6 +4,7 @@ import { DayService } from '../../services/day.service';
 import { TaskService } from '../../services/task.service';
 import { TemplateService, RecurringTask } from '../../services/template.service';
 import { SettingsService } from '../../services/settings.service';
+import { SkillService } from '../../services/skill.service';
 import { Day, SlotsPayload } from '../../models';
 import { SlotCardComponent } from '../../components/slot-card/slot-card.component';
 
@@ -260,6 +261,7 @@ export class DayViewComponent implements OnInit {
   private taskService = inject(TaskService);
   private templateService = inject(TemplateService);
   private settingsService = inject(SettingsService);
+  private skillService = inject(SkillService);
 
   centerDate = signal(new Date());
   daysData = signal<Day[]>([]);
@@ -411,7 +413,11 @@ export class DayViewComponent implements OnInit {
     const payload: SlotsPayload = {
       [slotName]: { completed: false }
     };
-    this.dayService.updateDay(date, payload).subscribe(() => this.loadDays());
+    this.dayService.updateDay(date, payload).subscribe(() => {
+      this.loadDays();
+      // Reload skills so the skills-page spider chart reflects the point removal
+      this.skillService.getSkills().subscribe();
+    });
   }
 
   private toDateString(date: Date): string {

@@ -251,7 +251,7 @@ const dbModule = {
         const task = tasksMap[prevSlot.taskId];
         if (task && task.statId) {
           const result = await this.shrinkStat(task.statId, task.statGain);
-          if (result && result.gain < 0) {
+          if (result && result.newValue !== result.oldValue) {
             statShrinkages.push({ slot: slotName, statId: task.statId, statName: task.statName, gain: result.gain, oldTier: result.oldTier, newTier: result.newTier });
           }
         }
@@ -692,6 +692,60 @@ const dbModule = {
     const count = beforeResult.length > 0 && beforeResult[0].values.length > 0 ? beforeResult[0].values[0][0] : 0;
 
     db.run("DELETE FROM tasks WHERE id NOT IN ('work','study','gym','social','hobbies')");
+    saveDb();
+
+    return { deletedCount: count };
+  },
+
+  async resetAllSkills() {
+    await getDb();
+
+    // Wipe all skills
+    db.run('DELETE FROM skills');
+
+    // Re-seed 5 default skills with value 0
+    const seedSkills = [
+      { id: 'guts',      name: 'Guts',      description: 'Courage and bravery',      icon: '💪' },
+      { id: 'courage',   name: 'Courage',   description: 'Willingness to take risks', icon: '🔥' },
+      { id: 'academics', name: 'Academics', description: 'Knowledge and learning',   icon: '📚' },
+      { id: 'kindness',  name: 'Kindness',  description: 'Compassion and empathy',   icon: '💗' },
+      { id: 'proficiency', name: 'Proficiency', description: 'Skill and dexterity', icon: '⚡' },
+    ];
+    for (const skill of seedSkills) {
+      db.run(`INSERT OR IGNORE INTO skills (id, name, description, icon, currentValue) VALUES (?, ?, ?, ?, 0)`, [
+        skill.id, skill.name, skill.description, skill.icon
+      ]);
+    }
+
+    saveDb();
+  },
+
+  async modifySkillPoints(statId, delta) {
+    await getDb();
+
+    const stmt = db.prepare('SELECT currentValue FROM skills WHERE id = ?');
+    stmt.bind([statId]);
+    if (!stmt.step()) { stmt.free(); return null; }
+    const row = stmt.getAsObject();
+    stmt.free();
+
+    const oldTier = Math.floor(row.currentValue / 100) + 1;
+    const newValue = Math.max(0, row.currentValue + delta);
+    const newTier = Math.floor(newValue / 100) + 1;
+
+    db.run('UPDATE skills SET currentValue = ? WHERE id = ?', [newValue, statId]);
+    saveDb();
+
+    return { statId, oldValue: row.currentValue, newValue, oldTier, newTier };
+  },
+
+  async deleteAllTasks() {
+    await getDb();
+
+    const countResult = db.exec('SELECT COUNT(*) as count FROM tasks');
+    const count = countResult.length > 0 && countResult[0].values.length > 0 ? countResult[0].values[0][0] : 0;
+
+    db.run('DELETE FROM tasks');
     saveDb();
 
     return { deletedCount: count };

@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DevService } from '../../services/dev.service';
 import { TaskService } from '../../services/task.service';
-import { Task } from '../../models';
+import { SkillService } from '../../services/skill.service';
+import { Task, Skill } from '../../models';
 
 @Component({
   selector: 'app-settings-dev',
@@ -69,6 +70,83 @@ import { Task } from '../../models';
             DELETE TASKS
           </button>
         }
+      </div>
+
+      <!-- Delete All Tasks card -->
+      <div class="dev-card p5-panel">
+        <div class="dev-card-label">⚠ DANGER ZONE</div>
+        <div class="dev-card-title">Delete All Tasks</div>
+        <div class="dev-card-desc">
+          Permanently deletes ALL tasks including the 5 built-ins.
+          This cannot be undone — re-seed with "Reset Database" afterwards.
+        </div>
+        @if (deleteAllCheckbox() === 'DELETE ALL') {
+          <button class="p5-btn p5-btn-danger" (click)="onDeleteAllTasks()">
+            DELETE ALL TASKS
+          </button>
+        } @else {
+          <input
+            class="p5-input"
+            placeholder="Type DELETE ALL to confirm"
+            [value]="deleteAllCheckbox()"
+            (input)="deleteAllCheckbox.set($any($event.target).value)"
+          />
+        }
+      </div>
+
+      <!-- Reset All Skills card -->
+      <div class="dev-card p5-panel">
+        <div class="dev-card-label">⚠ DANGER ZONE</div>
+        <div class="dev-card-title">Reset All Skills</div>
+        <div class="dev-card-desc">
+          Deletes all custom skills and re-seeds the 5 default skills (Guts, Courage, Academics, Kindness, Proficiency) with value 0.
+        </div>
+        <label class="checkbox-row">
+          <input
+            type="checkbox"
+            [checked]="resetSkillsCheckbox()"
+            (change)="resetSkillsCheckbox.set($any($event.target).checked)"
+          />
+          <span>I understand all skill progress will be reset to 0</span>
+        </label>
+        <button
+          class="p5-btn p5-btn-danger"
+          [disabled]="!resetSkillsCheckbox()"
+          (click)="onResetAllSkills()"
+        >
+          RESET SKILLS
+        </button>
+      </div>
+
+      <!-- Modify Stat Points card -->
+      <div class="dev-card p5-panel">
+        <div class="dev-card-label">✦ CHEAT ZONE</div>
+        <div class="dev-card-title">Modify Stat Points</div>
+        <div class="dev-card-desc">
+          Add or remove arbitrary points from any skill. Use negative numbers to subtract.
+        </div>
+        <div class="modify-row">
+          <select class="p5-input skill-select" [value]="modifySkillId()" (change)="modifySkillId.set($any($event.target).value)">
+            <option value="">— SELECT SKILL —</option>
+            @for (skill of skills(); track skill.id) {
+              <option [value]="skill.id">{{ skill.name }} ({{ skill.currentValue }})</option>
+            }
+          </select>
+          <input
+            class="p5-input delta-input"
+            type="number"
+            placeholder="Delta (e.g. +5 or -10)"
+            [value]="modifyDelta()"
+            (input)="modifyDelta.set($any($event.target).value)"
+          />
+        </div>
+        <button
+          class="p5-btn p5-btn-cheat"
+          [disabled]="!modifySkillId() || modifyDelta() === ''"
+          (click)="onModifyPoints()"
+        >
+          APPLY
+        </button>
       </div>
 
       @if (feedback()) {
@@ -179,6 +257,28 @@ import { Task } from '../../models';
       border-color: #e53935;
       box-shadow: 3px 3px 0 #e53935;
     }
+    .p5-btn-cheat {
+      border-color: #76ff03;
+      color: #76ff03;
+    }
+    .p5-btn-cheat:hover:not(:disabled) {
+      background: rgba(118,255,3,0.15);
+      border-color: #76ff03;
+      box-shadow: 3px 3px 0 #76ff03;
+    }
+    .modify-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .skill-select {
+      flex: 1;
+      min-width: 0;
+    }
+    .delta-input {
+      width: 120px;
+      flex-shrink: 0;
+    }
     .checkbox-row {
       display: flex;
       align-items: center;
@@ -218,17 +318,24 @@ import { Task } from '../../models';
 export class SettingsDevComponent implements OnInit {
   private devService = inject(DevService);
   private taskService = inject(TaskService);
+  private skillService = inject(SkillService);
 
   resetConfirmInput = signal('');
   deleteCheckbox = signal(false);
   nonDefaultCount = signal(0);
   feedback = signal('');
+  deleteAllCheckbox = signal('');
+  resetSkillsCheckbox = signal(false);
+  skills = signal<Skill[]>([]);
+  modifySkillId = signal('');
+  modifyDelta = signal('');
 
   private readonly BUILT_IN_TASK_IDS = ['work', 'study', 'gym', 'social', 'hobbies'];
   private feedbackTimeout: any;
 
   ngOnInit() {
     this.loadNonDefaultCount();
+    this.loadSkills();
   }
 
   loadNonDefaultCount() {
@@ -241,12 +348,20 @@ export class SettingsDevComponent implements OnInit {
     });
   }
 
+  loadSkills() {
+    this.skillService.getSkills().subscribe({
+      next: skills => this.skills.set(skills),
+      error: err => console.error('Failed to load skills:', err)
+    });
+  }
+
   onResetDb() {
     if (this.resetConfirmInput() !== 'DELETE') return;
     this.devService.resetDatabase().subscribe({
       next: res => {
         this.showFeedback(res.message);
         this.resetConfirmInput.set('');
+        this.loadSkills();
       },
       error: err => {
         console.error('Failed to reset database:', err);
@@ -265,6 +380,52 @@ export class SettingsDevComponent implements OnInit {
       },
       error: err => {
         console.error('Failed to delete non-default tasks:', err);
+        this.showFeedback('Error: ' + err.message);
+      }
+    });
+  }
+
+  onDeleteAllTasks() {
+    if (this.deleteAllCheckbox() !== 'DELETE ALL') return;
+    this.devService.deleteAllTasks().subscribe({
+      next: res => {
+        this.showFeedback(`Deleted ${res.deletedCount} task(s)`);
+        this.deleteAllCheckbox.set('');
+      },
+      error: err => {
+        console.error('Failed to delete all tasks:', err);
+        this.showFeedback('Error: ' + err.message);
+      }
+    });
+  }
+
+  onResetAllSkills() {
+    if (!this.resetSkillsCheckbox()) return;
+    this.devService.resetAllSkills().subscribe({
+      next: res => {
+        this.showFeedback(res.message);
+        this.resetSkillsCheckbox.set(false);
+        this.loadSkills();
+      },
+      error: err => {
+        console.error('Failed to reset skills:', err);
+        this.showFeedback('Error: ' + err.message);
+      }
+    });
+  }
+
+  onModifyPoints() {
+    const skillId = this.modifySkillId();
+    const delta = parseInt(this.modifyDelta(), 10);
+    if (!skillId || isNaN(delta)) return;
+    this.devService.modifySkillPoints(skillId, delta).subscribe({
+      next: res => {
+        this.showFeedback(`${res.statId}: ${res.oldValue} → ${res.newValue} (tier ${res.oldTier} → ${res.newTier})`);
+        this.modifyDelta.set('');
+        this.loadSkills();
+      },
+      error: err => {
+        console.error('Failed to modify points:', err);
         this.showFeedback('Error: ' + err.message);
       }
     });
