@@ -5,7 +5,7 @@ const db = require('../database/db');
 // GET /api/stats
 router.get('/', async (req, res) => {
   try {
-    const stats = await db.getAllStats();
+    const stats = await db.getAllSkills();
     res.json(stats);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, description } = req.body;
-    const stat = await db.createStat({ name, description });
+    const stat = await db.createSkill({ name, description });
     res.json(stat);
   } catch (err) {
     res.status(500).json({ error: err.message });
