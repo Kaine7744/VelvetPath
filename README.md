@@ -1,4 +1,4 @@
-# VelvetPath
+# VelvetPath (Vibe Code Warning: Entirely written by Anthropic Mini Max)
 
 A Persona-inspired daily planner that divides your day into 3 meaningful slots, tracks what you actually did, and grows your stats over time.
 
